@@ -199,6 +199,7 @@ export const fetchPostDetails = async (postId: string) => {
       .select(
         `
         *, 
+        user: users(id, name, image),
         postLikes (*),
         comments (*, user: users(id, name, image))
         `

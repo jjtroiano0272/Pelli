@@ -40,9 +40,10 @@ export const updateUser = async (userId: string, data: any) => {
   }
 };
 
+/** Deletes the currently logged in user */
 export const removeUser = async (userId?: string) => {
   try {
-    // Deletes user from auth, but not users table
+    // TODO ? Deletes user from auth, but not users table
     const { data, error } = await supabase.rpc('delete_user');
 
     if (error) {

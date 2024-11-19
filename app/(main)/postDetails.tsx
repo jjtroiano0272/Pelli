@@ -42,7 +42,6 @@ const PostDetails = () => {
   const commentRef = useRef("");
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
-
   const [post, setPost] = useState(null);
 
   const handleNewComment = async (payload: any) => {
@@ -83,7 +82,7 @@ const PostDetails = () => {
   }, []);
 
   const getPostDetails = async () => {
-    let res = await fetchPostDetails(postId);
+    let res = await fetchPostDetails(postId as string);
     if (res.success) setPost(res.data);
     setStartLoading(false);
   };
@@ -156,6 +155,13 @@ const PostDetails = () => {
     router.back();
     router.push({ pathname: "/newPost", params: { ...item } });
   };
+
+  useEffect(() => {
+    console.log(`IN POSTDETAILS`);
+    console.log(`postId: ${JSON.stringify(postId, null, 2)}`);
+    console.log(`commentId: ${JSON.stringify(commentId, null, 2)}`);
+    console.log(`post state var: ${JSON.stringify(post, null, 2)}`);
+  }, [, post]);
 
   if (startLoading) {
     return (

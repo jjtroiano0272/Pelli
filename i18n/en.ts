@@ -41,7 +41,8 @@ const en = {
     postActionButton: 'Post',
     submit: 'Submit',
     grantPermission: 'Grant Permission',
-    done: 'Done'
+    done: 'Done',
+    deletedUser: '[deleted]'
   },
   errors: {
     signOut: 'Error signing out',

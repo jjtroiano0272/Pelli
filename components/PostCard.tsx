@@ -273,6 +273,11 @@ const PostCard = ({
   const handleImageLoad = () => {
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    console.log(`item: ${JSON.stringify(item, null, 2)}`);
+  }, []);
+
   return (
     <Pressable
       onPress={interactable ? openPostDetails : null}
@@ -306,7 +311,7 @@ const PostCard = ({
                   },
                 ]}
               >
-                {item?.user?.name || "[deleted]"}
+                {item?.user?.name ?? translate("common:deletedUser")}
               </Text>
               <Text
                 style={[

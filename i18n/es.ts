@@ -41,8 +41,8 @@ const es = {
     postActionButton: 'Publicar',
     submit: 'Envíar',
     grantPermission: 'Conceder permiso', // *
-    done: '¡Listo!'
-
+    done: '¡Listo!',
+    deletedUser: '[eliminado]'
   },
   errors: {
     signOut: 'Había un error de cerrar la sesión',

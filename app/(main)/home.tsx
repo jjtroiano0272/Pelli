@@ -128,7 +128,7 @@ const Home = () => {
       console.log("Blocked users insert:", payload.new.blocked_users);
 
       const filteredPosts = posts.filter(
-        (post) => !payload?.new?.blocked_users.includes(post.userId)
+        (post) => !payload?.new?.blocked_users?.includes(post.userId)
       );
       // console.log(`filteredPosts: ${JSON.stringify(filteredPosts, null, 2)}`);
 
@@ -191,7 +191,6 @@ const Home = () => {
 
   const getPosts = async () => {
     if (!hasMore) {
-      console.log(`in !hasMore`);
       return null;
     }
     limit = limit + 10;
@@ -203,11 +202,19 @@ const Home = () => {
       `res?.data?.length: ${JSON.stringify(res?.data?.length, null, 2)}`
     );
 
-    if (res.success) {
-      // Indicates you've reached the end of the posts
+    // Previous approach
+    // if (res.success) {
+    //   if (posts.length == res?.data?.length) {
+    //     setHasMore(false);
+    //   }
 
-      // TODO Refactor this later. This is just a hacky workaround to get this thing submitted
-      // TODO probably needs a listener too
+    //   setPosts(res?.data);
+    // }
+
+    // Indicates you've reached the end of the posts
+    // TODO Refactor this later. This is just a hacky workaround to get this thing submitted
+    // TODO probably needs a listener too
+    if (res.success) {
       if (!res.filterObjectionableContent) {
         if (posts.length == res?.data?.length) {
           setHasMore(false);

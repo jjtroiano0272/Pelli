@@ -3,7 +3,7 @@
     "newArchEnabled": true,
     "name": "pelli",
     "slug": "pelli",
-    "version": "1.0.0",
+    "version": "2.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/strands-logo-2-contained.png",
     "scheme": "myapp",
