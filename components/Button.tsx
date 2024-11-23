@@ -14,7 +14,6 @@ import Loading from "./Loading";
 import { useTheme, withTheme } from "react-native-paper";
 
 type ButtonProps = {
-  // age?: number
   buttonStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   title?: string;
