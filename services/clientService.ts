@@ -53,6 +53,12 @@ export const fetchClientData = async (text: string) => {
 
 export const createOrUpdateClient = async (client: Client) => {
   try {
+    // A)
+    // const { data, error } = await supabase.from("clients").upsert(client);
+    //   .select()
+    //   .single();
+
+    // B)
     const { data, error } = await supabase
       .from("clients")
       .upsert(client)
