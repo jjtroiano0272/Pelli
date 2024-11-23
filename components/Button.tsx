@@ -3,21 +3,20 @@ import {
   StyleProp,
   StyleSheet,
   Text,
+  TextStyle,
   View,
   ViewStyle,
-} from 'react-native';
-import React from 'react';
-import { Link } from 'expo-router';
-import { theme } from '@/constants/theme';
-import { hp } from '@/helpers/common';
-import Loading from './Loading';
-import { useTheme as usePaperTheme } from 'react-native-paper';
-import * as Haptics from 'expo-haptics';
+} from "react-native";
+import React from "react";
+import { myTheme } from "@/constants/theme";
+import { hp } from "@/helpers/common";
+import Loading from "./Loading";
+import { useTheme, withTheme } from "react-native-paper";
 
 type ButtonProps = {
   // age?: number
   buttonStyle?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   title?: string;
   onPress: () => void;
   loading?: boolean;
@@ -28,15 +27,15 @@ type ButtonProps = {
 const Button = ({
   buttonStyle,
   textStyle,
-  title = '',
+  title = "",
   onPress = () => {},
   loading = false,
   hasShadow = true,
   disabled = false,
 }: ButtonProps) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const shadowStyle = {
-    shadowColor: paperTheme.colors.shadow,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -49,7 +48,10 @@ const Button = ({
         style={[
           styles.button,
           buttonStyle,
-          { backgroundColor: paperTheme.colors.background },
+          {
+            backgroundColor: theme.colors.background,
+            borderRadius: myTheme.radius.xl,
+          },
         ]}
       >
         <Loading />
@@ -63,9 +65,10 @@ const Button = ({
       style={[
         styles.button,
         {
+          borderRadius: myTheme.radius.xl,
           backgroundColor: disabled
-            ? paperTheme.colors.surfaceDisabled
-            : paperTheme.colors.primary,
+            ? theme.colors.surfaceDisabled
+            : theme.colors.primary,
         },
         buttonStyle,
         hasShadow && shadowStyle,
@@ -75,7 +78,8 @@ const Button = ({
         style={[
           styles.text,
           {
-            color: paperTheme.colors.onPrimary,
+            color: theme.colors.onPrimary,
+            fontWeight: "700",
           },
           textStyle,
         ]}
@@ -89,18 +93,15 @@ const Button = ({
 export default Button;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
   textHeader: { fontSize: 42 },
   button: {
     height: hp(6.6),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderCurve: 'continuous',
-    borderRadius: theme.radius.xl,
+    justifyContent: "center",
+    alignItems: "center",
+    borderCurve: "continuous",
   },
   text: {
     fontSize: hp(2.5),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
 });

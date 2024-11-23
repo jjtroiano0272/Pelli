@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { withTheme } from "react-native-paper";
 // import { Resource } from '../../util/reduxUtil';
 
 interface Resource<T> {
@@ -30,19 +31,19 @@ const ResourceView = ({
 
   if (resourceState instanceof Array) {
     // if any of the resources are loading, show the loading component
-    if (!resourceState || resourceState?.some(res => res.loading != false)) {
+    if (!resourceState || resourceState?.some((res) => res.loading != false)) {
       // if there is data inside all resources while any are loading, show loading unless told so
       if (doNotShowLoadingIfDataAvailable) {
-        if (resourceState?.some(res => res.data == null))
+        if (resourceState?.some((res) => res.data == null))
           return loadingComponent;
       } else return loadingComponent;
     }
 
     // if there are no errors in any resources, show success component
-    if (resourceState?.find(res => res.error != null) == undefined)
+    if (resourceState?.find((res) => res.error != null) == undefined)
       return successComponent;
     // caught an error? show the error component if allowed
-    else if (resourceState?.some(res => res.error) && !hideWhenError)
+    else if (resourceState?.some((res) => res.error) && !hideWhenError)
       return errorComponent;
     else return null;
   } else {
@@ -74,6 +75,7 @@ interface ResourceViewProps<T> {
   showLoadingForDebug?: boolean;
   showErrorForDebug?: boolean;
   visible?: boolean;
+  theme?: any;
 }
 
 export default ResourceView;

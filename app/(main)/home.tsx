@@ -1,51 +1,36 @@
 import {
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
   Text,
   Image,
-  useColorScheme,
   View,
-  ViewStyle,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import ScreenWrapper from "@/components/ScreenWrapper";
-import Button from "@/components/Button";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { hp, wp } from "@/helpers/common";
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import Icon from "@/assets/icons";
 import Avatar from "@/components/Avatar";
 import { fetchPosts } from "@/services/postService";
 import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";
 import { getUserData } from "@/services/userService";
-import { useAppTheme } from "@/utils/useAppTheme";
-import { ThemedStyle } from "@/theme";
 import { useTheme } from "react-native-paper";
-import { useTranslation } from "react-i18next";
 import { translate } from "@/i18n";
 import { appName } from "@/constants";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
-import FlipCard from "@/components/FlipCard";
-import { faker } from "@faker-js/faker/.";
+import Animated from "react-native-reanimated";
+// import FlipCard from "@/components/FlipCard";
 import { useAnimatedShake } from "@/hooks/useAnimatedShake";
-import MaskedView from "@react-native-masked-view/masked-view";
 import * as Haptics from "expo-haptics";
 
 var limit = 0;
 
 const Home = () => {
-  const { t } = useTranslation();
-  const paperTheme = useTheme();
+  const theme = useTheme();
   const { user, setAuth } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<any>([]);
@@ -197,11 +182,6 @@ const Home = () => {
 
     let res = await fetchPosts(limit, user?.id);
 
-    console.log(`posts.length: ${JSON.stringify(posts.length, null, 2)}`);
-    console.log(
-      `res?.data?.length: ${JSON.stringify(res?.data?.length, null, 2)}`
-    );
-
     // Previous approach
     // if (res.success) {
     //   if (posts.length == res?.data?.length) {
@@ -233,6 +213,12 @@ const Home = () => {
       }
     }
   };
+
+  useEffect(() => {
+    console.log(
+      `posts (first 3): ${JSON.stringify(posts.slice(0, 2), null, 2)}`
+    );
+  }, [posts]);
 
   return (
     <ScreenWrapper>
@@ -272,7 +258,13 @@ const Home = () => {
             {/* B => Flippable Logo */}
             {/* <FlipCard /> */}
             <Text
-              style={[styles.title, { color: paperTheme.colors.secondary }]}
+              style={[
+                styles.title,
+                {
+                  color: theme.colors.secondary,
+                  fontWeight: "700",
+                },
+              ]}
             >
               {appName}
             </Text>
@@ -290,14 +282,14 @@ const Home = () => {
                 name="notification" // heart
                 size={hp(3.2)}
                 strokeWidth={2}
-                color={paperTheme.colors.secondary}
+                color={theme.colors.secondary}
               />
               {notificationCount > 0 && (
                 <View
                   style={[
                     styles.pill,
                     {
-                      backgroundColor: paperTheme.colors.error,
+                      backgroundColor: theme.colors.error,
                     },
                   ]}
                 >
@@ -305,7 +297,8 @@ const Home = () => {
                     style={[
                       styles.pillText,
                       {
-                        color: paperTheme.colors.onError,
+                        color: theme.colors.onError,
+                        fontWeight: "700",
                       },
                     ]}
                   >
@@ -319,14 +312,14 @@ const Home = () => {
                 name="addCircle" // plus
                 size={hp(3.2)}
                 strokeWidth={2}
-                color={paperTheme.colors.secondary}
+                color={theme.colors.secondary}
               />
             </Pressable>
             <Pressable onPress={() => router.push("/profile")}>
               <Avatar
                 uri={user?.image}
                 size={hp(4.3)}
-                rounded={theme.radius.sm}
+                rounded={myTheme.radius.sm}
                 style={{ borderWidth: 2 }}
               />
             </Pressable>
@@ -353,10 +346,7 @@ const Home = () => {
             ) : (
               <View style={{ marginTop: 30, marginBottom: 50 }}>
                 <Text
-                  style={[
-                    styles.noPosts,
-                    { color: paperTheme.colors.secondary },
-                  ]}
+                  style={[styles.noPosts, { color: theme.colors.secondary }]}
                 >
                   {translate("common:endOfList")}
                 </Text>
@@ -385,14 +375,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: hp(3.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
   avatarImage: {
     height: hp(4.3),
     width: hp(4.3),
-    borderRadius: theme.radius.sm,
     borderCurve: "continuous",
+    // borderRadius: theme.radius.sm,
     // borderColor: theme.colors.gray,
     borderWidth: 3,
   },
@@ -423,8 +411,6 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: hp(1.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
   titleContainer: {
     flexDirection: "row",

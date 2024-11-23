@@ -1,23 +1,3 @@
-/* 
-  Untested on New Architecture: 
-    (I) react-native-keyboard-aware-scroll-view,  I guess nothing calls this
-    react-native-pell-rich-editor
-  Unmaintained: 
-    @react-native-material/core, 
-    react-native-keyboard-aware-scroll-view
-  No metadata available: @expo/ngrok,,
-    base64-arraybuffer,,
-    exifreader,,
-    expo-video,,
-    i18next,,
-    intl-pluralrules,,
-    lottie-ios,,
-    moment,,
-    patch-package,,
-    react-native-animated-splash-screen,,
-    react-native-ios-utilities,,
-    rn-animated-progress-circle
-*/
 import {
   Alert,
   FlatList,
@@ -26,7 +6,6 @@ import {
   Text,
   Touchable,
   TouchableOpacity,
-  TouchableOpacityBase,
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -36,17 +15,19 @@ import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
 import { hp, wp } from "@/helpers/common";
 import Icon from "@/assets/icons";
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import Avatar from "@/components/Avatar";
 import { fetchPosts } from "@/services/postService";
 import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";
 import {
-  useTheme as usePaperTheme,
+  useTheme as usetheme,
   Button as PaperButton,
   IconButton,
   Switch,
+  withTheme,
+  useTheme,
 } from "react-native-paper";
 import { translate } from "@/i18n";
 import * as Haptics from "expo-haptics";
@@ -56,7 +37,7 @@ import { getUserData, updateUser } from "@/services/userService";
 var limit = 0;
 
 const Profile = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const { user, setAuth } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<any>([]);
@@ -178,7 +159,7 @@ const Profile = () => {
             <View
               style={[
                 styles.horizontalLine,
-                { borderBottomColor: paperTheme.colors.onBackground },
+                { borderBottomColor: theme.colors.onBackground },
               ]}
             />
             {/*Row to contain three columns, one which is liked posts  */}
@@ -201,7 +182,7 @@ const Profile = () => {
                 style={[
                   styles.sectionTitle,
                   {
-                    color: paperTheme.colors.secondary,
+                    color: theme.colors.secondary,
                   },
                 ]}
               >
@@ -210,7 +191,7 @@ const Profile = () => {
               <View
                 style={[
                   styles.row,
-                  { backgroundColor: paperTheme.colors.elevation.level3 },
+                  { backgroundColor: theme.colors.elevation.level3 },
                 ]}
               >
                 <View style={[styles.rowIcon, { backgroundColor: "#FE9400" }]}>
@@ -218,7 +199,7 @@ const Profile = () => {
                 </View>
                 {/* <Text style={styles.rowLabel}>Language</Text> */}
 
-                <Text style={{ color: paperTheme.colors.secondary }}>
+                <Text style={{ color: theme.colors.secondary }}>
                   {translate("profileScreen:showNsfw")}
                 </Text>
                 <View style={styles.rowSpacer} />
@@ -235,13 +216,13 @@ const Profile = () => {
                 }}
                 style={[
                   styles.row,
-                  { backgroundColor: paperTheme.colors.elevation.level3 },
+                  { backgroundColor: theme.colors.elevation.level3 },
                 ]}
               >
                 <View
                   style={[
                     styles.rowIcon,
-                    { backgroundColor: paperTheme.colors.error },
+                    { backgroundColor: theme.colors.error },
                   ]}
                 >
                   <IconButton
@@ -254,7 +235,7 @@ const Profile = () => {
                   style={[
                     styles.rowLabel,
                     {
-                      color: paperTheme.colors.secondary,
+                      color: theme.colors.secondary,
                     },
                   ]}
                 >
@@ -263,14 +244,14 @@ const Profile = () => {
                 <View style={styles.rowSpacer} />
                 <IconButton
                   // '#C6C6C6'
-                  iconColor={paperTheme.colors.secondary}
+                  iconColor={theme.colors.secondary}
                   icon="chevron-right"
                   size={20}
                 />
               </TouchableOpacity>
             </View>
 
-            <Text style={{ color: paperTheme.colors.secondary }}>
+            <Text style={{ color: theme.colors.secondary }}>
               {translate("profileScreen:myRecentPosts")}
             </Text>
           </>
@@ -302,7 +283,7 @@ const Profile = () => {
                 style={[
                   styles.noPosts,
                   {
-                    color: paperTheme.colors.onBackground,
+                    color: theme.colors.onBackground,
                   },
                 ]}
               >
@@ -316,13 +297,14 @@ const Profile = () => {
   );
 };
 
-const UserHeader = ({ user, router, handleLogout }) => {
-  const paperTheme = usePaperTheme();
+const UserHeader = ({ user, router, handleLogout }: any) => {
+  const theme = useTheme();
+
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: paperTheme.colors.background,
+        backgroundColor: theme.colors.background,
         paddingHorizontal: wp(4),
       }}
     >
@@ -332,12 +314,13 @@ const UserHeader = ({ user, router, handleLogout }) => {
           style={[
             styles.logoutButton,
             {
-              backgroundColor: paperTheme.colors.error,
+              backgroundColor: theme.colors.error,
+              borderRadius: myTheme.radius.sm,
             },
           ]}
           onPress={handleLogout}
         >
-          <Icon name={"logout"} color={paperTheme.colors.onError} />
+          <Icon name={"logout"} color={theme.colors.onError} />
         </TouchableOpacity>
       </View>
 
@@ -347,13 +330,13 @@ const UserHeader = ({ user, router, handleLogout }) => {
             <Avatar
               uri={user?.image}
               size={hp(12)}
-              rounded={theme.radius.xxl * 1.4}
+              rounded={myTheme.radius.xxl * 1.4}
             />
             <Pressable
               style={[
                 styles.editIcon,
                 {
-                  shadowColor: paperTheme.colors.shadow,
+                  shadowColor: theme.colors.shadow,
                 },
               ]}
               onPress={() => router.push("/editProfile")}
@@ -368,7 +351,7 @@ const UserHeader = ({ user, router, handleLogout }) => {
               style={[
                 styles.username,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
                 },
               ]}
             >
@@ -378,7 +361,7 @@ const UserHeader = ({ user, router, handleLogout }) => {
               style={[
                 styles.infoText,
                 {
-                  color: paperTheme.colors.onSurface,
+                  color: theme.colors.onSurface,
                 },
               ]}
             >
@@ -389,12 +372,9 @@ const UserHeader = ({ user, router, handleLogout }) => {
           <View style={{ gap: 10 }}>
             <View style={styles.info}>
               {/* name mail */}
-              <Icon name="email" color={paperTheme.colors.secondary} />
+              <Icon name="email" color={theme.colors.secondary} />
               <Text
-                style={[
-                  styles.infoText,
-                  { color: paperTheme.colors.onBackground },
-                ]}
+                style={[styles.infoText, { color: theme.colors.onBackground }]}
               >
                 {user && user.email}
               </Text>
@@ -402,11 +382,11 @@ const UserHeader = ({ user, router, handleLogout }) => {
             {user && user?.phoneNumber && (
               <View style={styles.info}>
                 {/* name call/phone */}
-                <Icon name="phone" color={paperTheme.colors.secondary} />
+                <Icon name="phone" color={theme.colors.secondary} />
                 <Text
                   style={[
                     styles.infoText,
-                    { color: paperTheme.colors.onBackground },
+                    { color: theme.colors.onBackground },
                   ]}
                 >
                   {user && user.phoneNumber}
@@ -415,10 +395,7 @@ const UserHeader = ({ user, router, handleLogout }) => {
             )}
             {user && user?.bio && (
               <Text
-                style={[
-                  styles.infoText,
-                  { color: paperTheme.colors.onBackground },
-                ]}
+                style={[styles.infoText, { color: theme.colors.onBackground }]}
               >
                 {user && user.bio}
               </Text>
@@ -446,21 +423,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginHorizontal: wp(4),
   },
-  title: {
-    // color: theme.colors.text,
-    fontSize: hp(3.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
-  },
-  avatarImage: {
-    height: hp(4.3),
-    width: hp(4.3),
-    borderRadius: theme.radius.sm,
-    borderCurve: "continuous",
-    // borderColor: theme.colors.gray,
-    borderWidth: 3,
-  },
-
   icons: {
     flexDirection: "row",
     justifyContent: "center",
@@ -509,7 +471,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     padding: 5,
-    borderRadius: theme.radius.sm,
   },
   listStyle: {
     paddingHorizontal: wp(4),
@@ -529,12 +490,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 20,
     // backgroundColor: theme.colors.roseLight,
-  },
-  pillText: {
-    color: "white",
-    fontSize: hp(1.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
   horizontalLine: {
     marginVertical: 20,

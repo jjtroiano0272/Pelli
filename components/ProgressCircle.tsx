@@ -1,15 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import { useEffect, useRef, useState } from "react";
+import { View } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import Animated, {
   interpolateColor,
   useAnimatedProps,
   useDerivedValue,
   useSharedValue,
   withTiming,
-} from 'react-native-reanimated';
-import { hp } from '@/helpers/common';
-import { useTheme as usePaperTheme } from 'react-native-paper';
+} from "react-native-reanimated";
+import { hp } from "@/helpers/common";
+import {
+  useTheme as usePaperTheme,
+  useTheme,
+  withTheme,
+} from "react-native-paper";
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+const radius = 45;
+const circumference = radius * Math.PI * 2;
 
 interface ProgressCircleProps {
   progress?: number;
@@ -17,19 +26,13 @@ interface ProgressCircleProps {
   size: number;
   isRecording: boolean;
 }
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-const radius = 45;
-const circumference = radius * Math.PI * 2;
-
 const ProgressCircle = ({
   progress,
   videoRecordTimeLimit,
   size,
   isRecording,
 }: ProgressCircleProps) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const strokeOffset = useSharedValue(circumference);
   const percentage = useDerivedValue(() => {
     const number = ((circumference - strokeOffset.value) / circumference) * 100;
@@ -39,7 +42,7 @@ const ProgressCircle = ({
     return interpolateColor(
       percentage.value,
       [0, 50, 100],
-      ['#9e4784', '#66347F', '#37306B']
+      ["#9e4784", "#66347F", "#37306B"]
     );
   });
   const animatedCircleProps = useAnimatedProps(() => {
@@ -59,7 +62,7 @@ const ProgressCircle = ({
     setIsActive(true);
     setIsPaused(false);
     countRef.current = setInterval(() => {
-      setTimer(timer => timer + 1);
+      setTimer((timer) => timer + 1);
     }, 1000);
   };
   const handlePause = () => {
@@ -69,7 +72,7 @@ const ProgressCircle = ({
   const handleContinue = () => {
     setIsPaused(false);
     countRef.current = setInterval(() => {
-      setTimer(timer => timer + 1);
+      setTimer((timer) => timer + 1);
     }, 1000);
   };
   const handleReset = () => {
@@ -87,28 +90,28 @@ const ProgressCircle = ({
     <View
       style={{
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
-      <Svg height={size} width={size} viewBox='0 0 100 100'>
+      <Svg height={size} width={size} viewBox="0 0 100 100">
         <Circle
-          cx='50'
-          cy='50'
-          r='45'
-          stroke='#fff'
-          strokeWidth='10'
-          fill='transparent'
+          cx="50"
+          cy="50"
+          r="45"
+          stroke="#fff"
+          strokeWidth="10"
+          fill="transparent"
         />
         <AnimatedCircle
           animatedProps={animatedCircleProps}
-          cx='50'
-          cy='50'
-          r='45'
-          stroke='#ff0000'
-          strokeWidth='10'
+          cx="50"
+          cy="50"
+          r="45"
+          stroke="#ff0000"
+          strokeWidth="10"
           strokeDasharray={`${radius * Math.PI * 2}`}
-          fill='transparent'
+          fill="transparent"
         />
       </Svg>
     </View>

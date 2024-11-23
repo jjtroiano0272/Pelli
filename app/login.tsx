@@ -13,16 +13,16 @@ import ScreenWrapper from "@/components/ScreenWrapper";
 import { StatusBar } from "expo-status-bar";
 import BackButton from "@/components/BackButton";
 import { hp, wp } from "@/helpers/common";
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { supabase } from "@/lib/supabase";
-import { useTheme as usePaperTheme } from "react-native-paper";
+import { useTheme, useTheme as usetheme, withTheme } from "react-native-paper";
 import * as Haptics from "expo-haptics";
 import { translate } from "@/i18n";
 
 const Login = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const router = useRouter();
   const emailRef = useRef("");
   const passwordRef = useRef("");
@@ -64,7 +64,8 @@ const Login = () => {
             style={[
               styles.welcomeText,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
+                fontWeight: "700",
               },
             ]}
           >
@@ -74,7 +75,7 @@ const Login = () => {
             style={[
               styles.welcomeText,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
@@ -84,9 +85,7 @@ const Login = () => {
 
         {/* form */}
         <View style={styles.form}>
-          <Text
-            style={{ fontSize: hp(1.5), color: paperTheme.colors.onBackground }}
-          >
+          <Text style={{ fontSize: hp(1.5), color: theme.colors.onBackground }}>
             {translate("loginScreen:pleaseLogin")}
           </Text>
           {/* @56:00 */}
@@ -106,7 +105,8 @@ const Login = () => {
               style={[
                 styles.forgotPassword,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
+                  fontWeight: "600",
                 },
               ]}
             >
@@ -126,7 +126,7 @@ const Login = () => {
             style={[
               styles.footerText,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
@@ -138,8 +138,8 @@ const Login = () => {
                 styles.footerText,
                 // @ts-ignore
                 {
-                  color: paperTheme.colors.onBackground,
-                  fontWeight: theme.fonts.semibold,
+                  color: theme.colors.onBackground,
+                  fontWeight: "600",
                 },
               ]}
             >
@@ -163,16 +163,12 @@ const styles = StyleSheet.create({
   textHeader: { fontSize: 42 },
   welcomeText: {
     fontSize: hp(4),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
   form: {
     gap: 25,
   },
   forgotPassword: {
     textAlign: "right",
-    // @ts-ignore
-    fontWeight: theme.fonts.semibold,
   },
   footer: {
     flexDirection: "row",

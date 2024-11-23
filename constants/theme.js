@@ -1,4 +1,4 @@
-export const theme = {
+export const myTheme = {
   colors: {
     primary: '#00C26F',
     primaryDark: '#00AC62',
@@ -14,10 +14,10 @@ export const theme = {
     rose: '#ef4444',
     roseLight: '#f87171',
   },
-  fonts: {
+  fontWeight: {
     medium: '500',
     semibold: '600',
-    bold: '700',
+    bold: "700",
     extraBold: '800',
   },
 
@@ -30,3 +30,6 @@ export const theme = {
     xxl: 22,
   },
 };
+
+/* (property) TextStyle.fontWeight?: 100 | "black" | "100" | "bold" | "normal" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | "ultralight" | "thin" | "light" | ... 6 more ... | undefined
+ */

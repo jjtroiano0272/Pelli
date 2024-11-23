@@ -1,8 +1,6 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import React from "react";
-import { Link } from "expo-router";
-import { theme } from "@/constants/theme";
-import { useTheme } from "react-native-paper";
+import { useTheme, withTheme } from "react-native-paper";
 
 // This is just the loading ICON--not the load screen
 const Loading = ({
@@ -12,7 +10,7 @@ const Loading = ({
   size?: number | "large" | "small" | undefined;
   color?: string;
 }) => {
-  const paperTheme = useTheme();
+  const theme = useTheme();
 
   return (
     <View
@@ -21,17 +19,11 @@ const Loading = ({
         alignItems: "center",
       }}
     >
-      <ActivityIndicator
-        size={size}
-        color={color ?? paperTheme.colors.primary}
-      />
+      <ActivityIndicator size={size} color={color ?? theme.colors.primary} />
     </View>
   );
 };
 
 export default Loading;
 
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  textHeader: { fontSize: 42 },
-});
+const styles = StyleSheet.create({});

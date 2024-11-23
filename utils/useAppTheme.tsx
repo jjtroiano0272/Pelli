@@ -5,13 +5,13 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react';
-import { StyleProp, useColorScheme } from 'react-native';
+} from "react";
+import { StyleProp, useColorScheme } from "react-native";
 import {
   DarkTheme,
   DefaultTheme,
   useTheme as useNavTheme,
-} from '@react-navigation/native';
+} from "@react-navigation/native";
 import {
   type Theme,
   type ThemeContexts,
@@ -19,8 +19,8 @@ import {
   type ThemedStyleArray,
   lightTheme,
   darkTheme,
-} from '@/theme';
-import * as SystemUI from 'expo-system-ui';
+} from "@/theme";
+import * as SystemUI from "expo-system-ui";
 
 type ThemeContextType = {
   themeScheme: ThemeContexts;
@@ -32,13 +32,13 @@ export const ThemeContext = createContext<ThemeContextType>({
   themeScheme: undefined, // default to the system theme
   setThemeContextOverride: (_newTheme: ThemeContexts) => {
     console.error(
-      'Tried to call setThemeContextOverride before the ThemeProvider was initialized'
+      "Tried to call setThemeContextOverride before the ThemeProvider was initialized"
     );
   },
 });
 
 const themeContextToTheme = (themeContext: ThemeContexts): Theme =>
-  themeContext === 'dark' ? darkTheme : lightTheme;
+  themeContext === "dark" ? darkTheme : lightTheme;
 
 const setImperativeTheming = (theme: Theme) => {
   SystemUI.setBackgroundColorAsync(theme.colors.background);
@@ -52,8 +52,8 @@ export const useThemeProvider = (initialTheme: ThemeContexts = undefined) => {
     setTheme(newTheme);
   }, []);
 
-  const themeScheme = overrideTheme || colorScheme || 'light';
-  const navigationTheme = themeScheme === 'dark' ? DarkTheme : DefaultTheme;
+  const themeScheme = overrideTheme || colorScheme || "light";
+  const navigationTheme = themeScheme === "dark" ? DarkTheme : DefaultTheme;
 
   useEffect(() => {
     setImperativeTheming(themeContextToTheme(themeScheme));
@@ -90,17 +90,17 @@ interface UseAppThemeValue {
  * @returns {UseAppThemeReturn} An object containing various theming values and utilities.
  * @throws {Error} If used outside of a ThemeProvider.
  */
-export const useAppTheme = (): UseAppThemeValue => {
+export const useAppTheme = ({ theme }): UseAppThemeValue => {
   const navTheme = useNavTheme();
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
 
   const { themeScheme: overrideTheme, setThemeContextOverride } = context;
 
   const themeContext: ThemeContexts = useMemo(
-    () => overrideTheme || (navTheme.dark ? 'dark' : 'light'),
+    () => overrideTheme || (navTheme.dark ? "dark" : "light"),
     [overrideTheme, navTheme]
   );
 
@@ -114,8 +114,8 @@ export const useAppTheme = (): UseAppThemeValue => {
       styleOrStyleFn: ThemedStyle<T> | StyleProp<T> | ThemedStyleArray<T>
     ) => {
       const flatStyles = [styleOrStyleFn].flat(3);
-      const stylesArray = flatStyles.map(f => {
-        if (typeof f === 'function') {
+      const stylesArray = flatStyles.map((f) => {
+        if (typeof f === "function") {
           return (f as ThemedStyle<T>)(themeVariant);
         } else {
           return f;

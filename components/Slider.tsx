@@ -8,20 +8,21 @@ import {
   TouchableOpacity,
   ViewToken,
   Alert,
-} from 'react-native';
-import React, { useState, useRef } from 'react';
-import { Link } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { wp } from '@/helpers/common';
-import Icon from '@/assets/icons';
-import SliderItem, { ImageSliderType } from './SliderItem';
-import { faker } from '@faker-js/faker/.';
+} from "react-native";
+import React, { useState, useRef } from "react";
+import { Link } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { wp } from "@/helpers/common";
+import Icon from "@/assets/icons";
+import SliderItem, { ImageSliderType } from "./SliderItem";
+import { faker } from "@faker-js/faker/.";
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
-} from 'react-native-reanimated';
-import Pagination from './Pagination';
-import { BlurView } from 'expo-blur';
+} from "react-native-reanimated";
+import Pagination from "./Pagination";
+import { BlurView } from "expo-blur";
+import { useTheme, withTheme } from "react-native-paper";
 
 type Props = {
   itemList: ImageSliderType[];
@@ -29,11 +30,12 @@ type Props = {
 };
 
 const Slider = ({ itemList, onPress }: Props) => {
+  const theme = useTheme();
   const scrollX = useSharedValue(0);
   const [paginationIndex, setPaginationIndex] = useState(0);
 
   const onScrollHandler = useAnimatedScrollHandler({
-    onScroll: e => {
+    onScroll: (e) => {
       scrollX.value = e.contentOffset.x;
     },
   });
@@ -67,7 +69,7 @@ const Slider = ({ itemList, onPress }: Props) => {
             item={item}
             index={index}
             scrollX={scrollX}
-            onPress={image => onPress(image)}
+            onPress={(image) => onPress(image)}
           />
         )}
         horizontal
@@ -108,6 +110,6 @@ const Slider = ({ itemList, onPress }: Props) => {
 export default Slider;
 
 const styles = StyleSheet.create({
-  leftBlur: { position: 'absolute', width: '25%', height: '100%' },
-  rightBlur: { position: 'absolute', width: '25%', height: '100%', right: 0 },
+  leftBlur: { position: "absolute", width: "25%", height: "100%" },
+  rightBlur: { position: "absolute", width: "25%", height: "100%", right: 0 },
 });

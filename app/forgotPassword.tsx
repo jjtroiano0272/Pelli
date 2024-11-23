@@ -1,37 +1,31 @@
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useRouter } from 'expo-router';
-import ScreenWrapper from '@/components/ScreenWrapper';
-import BackButton from '@/components/BackButton';
-import { useTheme as usePaperTheme } from 'react-native-paper';
-import { translate } from '@/i18n';
-import { hp, wp } from '@/helpers/common';
-import Input from '@/components/Input';
-import Button from '@/components/Button';
-import Icon from '@/assets/icons';
-import { theme } from '@/constants/theme';
-import { supabase } from '@/lib/supabase';
-import * as Haptics from 'expo-haptics';
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import BackButton from "@/components/BackButton";
+import { translate } from "@/i18n";
+import { hp, wp } from "@/helpers/common";
+import Input from "@/components/Input";
+import Button from "@/components/Button";
+import Icon from "@/assets/icons";
+import { supabase } from "@/lib/supabase";
+import * as Haptics from "expo-haptics";
+import { useTheme, withTheme } from "react-native-paper";
+import { myTheme } from "@/constants/theme";
 
 const ForgotPassword = () => {
+  const theme = useTheme();
   const router = useRouter();
-  const paperTheme = usePaperTheme();
+
   const [loading, setLoading] = useState(false);
-  const emailRef = useRef('');
+  const emailRef = useRef("");
 
   const onSubmit = async () => {
     if (!emailRef.current) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert(
-        translate('forgotPasswordScreen:title'),
-        translate('forgotPasswordScreen:alerts.emailMissing')
+        translate("forgotPasswordScreen:title"),
+        translate("forgotPasswordScreen:alerts.emailMissing")
       );
       return;
     }
@@ -46,8 +40,8 @@ const ForgotPassword = () => {
 
     if (error) {
       Alert.alert(
-        'Reset Password',
-        'There was an error sending the password reset.'
+        "Reset Password",
+        "There was an error sending the password reset."
       );
       console.log(
         `onSubmitForgotPassword error: ${JSON.stringify(error, null, 2)}`
@@ -57,9 +51,9 @@ const ForgotPassword = () => {
 
   useEffect(() => {
     supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event == 'PASSWORD_RECOVERY') {
+      if (event == "PASSWORD_RECOVERY") {
         const newPassword = prompt(
-          translate('forgotPasswordScreen:newPasswordPrompt')
+          translate("forgotPasswordScreen:newPasswordPrompt")
         );
         const { data, error } = await supabase.auth.updateUser({
           password: newPassword,
@@ -67,7 +61,7 @@ const ForgotPassword = () => {
 
         // on success
         if (data) {
-          alert(translate('forgotPasswordScreen:passwordUpdateSuccess'));
+          alert(translate("forgotPasswordScreen:passwordUpdateSuccess"));
           // log user in the same way we do with login.tsx
           let email = emailRef.current.trim();
 
@@ -79,7 +73,7 @@ const ForgotPassword = () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setLoading(false);
         }
-        if (error) alert(translate('forgotPasswordScreen:passwordUpdateError'));
+        if (error) alert(translate("forgotPasswordScreen:passwordUpdateError"));
       }
     });
   }, []);
@@ -94,19 +88,20 @@ const ForgotPassword = () => {
             style={[
               styles.welcomeText,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
+                fontWeight: "700",
               },
             ]}
           >
-            {translate('forgotPasswordScreen:title')}
+            {translate("forgotPasswordScreen:title")}
           </Text>
         </View>
 
         {/* form */}
         <View style={styles.form}>
           <Input
-            icon={<Icon name='email' size={26} strokeWidth={1.6} />}
-            placeholder={translate('common:emailInputPlaceholder')}
+            icon={<Icon name="email" size={26} strokeWidth={1.6} />}
+            placeholder={translate("common:emailInputPlaceholder")}
             onChangeText={(value: string) => (emailRef.current = value)}
           />
           {/* <Input
@@ -117,7 +112,7 @@ const ForgotPassword = () => {
           /> */}
 
           <Button
-            title={translate('forgotPasswordScreen:sendReset')}
+            title={translate("forgotPasswordScreen:sendReset")}
             loading={loading}
             onPress={onSubmit}
           />
@@ -128,24 +123,24 @@ const ForgotPassword = () => {
             style={[
               styles.footerText,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
-            {translate('common:dontHaveAccount')}
+            {translate("common:dontHaveAccount")}
           </Text>
-          <Pressable onPress={() => router.push('/signUp')}>
+          <Pressable onPress={() => router.push("/signUp")}>
             <Text
               style={[
                 styles.footerText,
                 // @ts-ignore
                 {
-                  color: paperTheme.colors.onBackground,
-                  fontWeight: theme.fonts.semibold,
+                  color: theme.colors.onBackground,
+                  fontWeight: "600",
                 },
               ]}
             >
-              {translate('common:signUp')}
+              {translate("common:signUp")}
             </Text>
           </Pressable>
         </View>
@@ -165,25 +160,21 @@ const styles = StyleSheet.create({
   textHeader: { fontSize: 42 },
   welcomeText: {
     fontSize: hp(4),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
   form: {
     gap: 25,
   },
   forgotPassword: {
-    textAlign: 'right',
-    // @ts-ignore
-    fontWeight: theme.fonts.semibold,
+    textAlign: "right",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 5,
   },
   footerText: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: hp(1.6),
   },
 });

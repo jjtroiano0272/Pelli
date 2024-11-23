@@ -1,13 +1,14 @@
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import React from 'react';
-import { Link } from 'expo-router';
-import { ImageSliderType } from './SliderItem';
+import { Dimensions, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { Link } from "expo-router";
+import { ImageSliderType } from "./SliderItem";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
+import { withTheme } from "react-native-paper";
 
 type Props = {
   items: ImageSliderType[];
@@ -15,7 +16,7 @@ type Props = {
   scrollX: SharedValue<number>;
 };
 
-const { width } = Dimensions.get('screen');
+const { width } = Dimensions.get("screen");
 
 const Pagination = ({ items, paginationIndex, scrollX }: Props) => {
   // const pgAnimationStyle = useAnimatedStyle(() => {
@@ -50,7 +51,7 @@ const Pagination = ({ items, paginationIndex, scrollX }: Props) => {
             style={[
               styles.dot,
               pgAnimationStyle,
-              { backgroundColor: paginationIndex === index ? '#222' : '#aaa' },
+              { backgroundColor: paginationIndex === index ? "#222" : "#aaa" },
             ]}
           />
         );
@@ -64,12 +65,12 @@ export default Pagination;
 const styles = StyleSheet.create({
   container: {
     height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
   },
   dot: {
-    backgroundColor: '#aaa',
+    backgroundColor: "#aaa",
     height: 8,
     width: 8,
     marginHorizontal: 2,

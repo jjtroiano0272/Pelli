@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker/.';
-import React, { useEffect, useState } from 'react';
+import { faker } from "@faker-js/faker/.";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Pressable,
   SafeAreaView,
@@ -7,13 +7,15 @@ import {
   StyleSheet,
   Text,
   Image,
-} from 'react-native';
+  ViewStyle,
+} from "react-native";
+import { useTheme } from "react-native-paper";
 import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
 const RegularContent = () => {
   return (
@@ -22,7 +24,7 @@ const RegularContent = () => {
     >
       {/* <Text style={regularContentStyles.text}>Regular content ✨</Text> */}
       <Image
-        source={require('@/assets/images/icon.png')}
+        source={require("@/assets/images/icon.png")}
         style={{
           width: 50,
           height: 50,
@@ -35,13 +37,13 @@ const RegularContent = () => {
 const regularContentStyles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: '#b6cff7',
+    backgroundColor: "#b6cff7",
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   text: {
-    color: '#001a72',
+    color: "#001a72",
   },
 });
 
@@ -50,6 +52,7 @@ interface FlippedContentProps {
 }
 
 const FlippedContent = ({ content }: FlippedContentProps) => {
+  const theme = useTheme();
   return (
     <View style={flippedContentStyles.card}>
       <Text style={flippedContentStyles.text}>{content}</Text>
@@ -60,28 +63,37 @@ const FlippedContent = ({ content }: FlippedContentProps) => {
 const flippedContentStyles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: '#baeee5',
+    backgroundColor: "#baeee5",
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   text: {
-    color: '#001a72',
+    color: "#001a72",
   },
 });
 
+interface FlipCardProps {
+  isFlipped: boolean;
+  cardStyle: ViewStyle;
+  direction: string;
+  duration: number;
+  RegularContent: JSX.Element;
+  FlippedContent: JSX.Element;
+  content: JSX.Element;
+}
 const FlipCard = ({
   isFlipped,
   cardStyle,
-  direction = 'y',
+  direction = "y",
   duration = 500,
   RegularContent,
   FlippedContent,
   content,
-}) => {
-  const isDirectionX = direction === 'x';
+}: FlipCardProps) => {
+  const isDirectionX = direction === "x";
   const regularCardAnimatedStyle = useAnimatedStyle(() => {
-    const spinValue = interpolate(Number(isFlipped.value), [0, 1], [0, 180]);
+    const spinValue = interpolate(Number(isFlipped.valueOf), [0, 1], [0, 180]);
     const rotateValue = withTiming(`${spinValue}deg`, { duration });
     return {
       transform: [
@@ -90,7 +102,11 @@ const FlipCard = ({
     };
   });
   const flippedCardAnimatedStyle = useAnimatedStyle(() => {
-    const spinValue = interpolate(Number(isFlipped.value), [0, 1], [180, 360]);
+    const spinValue = interpolate(
+      Number(isFlipped.valueOf),
+      [0, 1],
+      [180, 360]
+    );
     const rotateValue = withTiming(`${spinValue}deg`, { duration });
     return {
       transform: [
@@ -124,18 +140,18 @@ const FlipCard = ({
 
 const flipCardStyles = StyleSheet.create({
   regularCard: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 1,
   },
   flippedCard: {
-    backfaceVisibility: 'hidden',
+    backfaceVisibility: "hidden",
     zIndex: 2,
   },
 });
 
-export default function App() {
+function App() {
   const isFlipped = useSharedValue(false);
-  const [flippedContent, setFlippedContent] = useState('');
+  const [flippedContent, setFlippedContent] = useState("");
 
   const getContent = () => {
     return faker.animal.bird();
@@ -164,17 +180,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: 300,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonContainer: {
     marginTop: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   toggleButtonText: {
-    color: '#fff',
-    textAlign: 'center',
+    color: "#fff",
+    textAlign: "center",
   },
   flipCard: {
     // width: 170,

@@ -1,6 +1,7 @@
-import * as DropdownMenu from 'zeego/dropdown-menu';
-import { View, Text } from 'react-native';
-import Icon from '@/assets/icons';
+import * as DropdownMenu from "zeego/dropdown-menu";
+import { View, Text } from "react-native";
+import Icon from "@/assets/icons";
+import { withTheme } from "react-native-paper";
 
 export type Props = {
   items: Array<{
@@ -17,13 +18,13 @@ const Picker = ({ items, onSelect }: Props) => {
     // >> A
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
-        <Icon name='user' size={26} strokeWidth={1.6} />
+        <Icon name="user" size={26} strokeWidth={1.6} />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content>
-        <DropdownMenu.Label>Label</DropdownMenu.Label>
+        {/* <DropdownMenu.Label>Label</DropdownMenu.Label> */}
 
-        <DropdownMenu.Item key='42'>
+        <DropdownMenu.Item key="42">
           <DropdownMenu.ItemTitle>My item</DropdownMenu.ItemTitle>
         </DropdownMenu.Item>
       </DropdownMenu.Content>

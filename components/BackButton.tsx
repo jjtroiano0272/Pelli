@@ -1,13 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import React from 'react';
-import { Link } from 'expo-router';
-import Icon from '@/assets/icons';
-import { theme } from '@/constants/theme';
-import { useTheme as usePaperTheme } from 'react-native-paper';
+import { Pressable, StyleSheet } from "react-native";
+import React from "react";
+import Icon from "@/assets/icons";
+import { useTheme, withTheme } from "react-native-paper";
+import { myTheme } from "@/constants/theme";
 
 const BackButton = ({ size = 26, router }: any) => {
-  const paperTheme = usePaperTheme();
-
+  const theme = useTheme();
   return (
     <Pressable
       onPress={() => router.back()}
@@ -15,14 +13,15 @@ const BackButton = ({ size = 26, router }: any) => {
         styles.button,
         {
           // backgroundColor: paperTheme.colors.primary,
+          borderRadius: myTheme.radius.sm,
         },
       ]}
     >
       <Icon
-        name='arrowLeft'
+        name="arrowLeft"
         strokeWidth={1.6}
         size={size}
-        color={paperTheme.colors.onBackground}
+        color={theme.colors.onBackground}
       />
     </Pressable>
   );
@@ -33,8 +32,7 @@ export default BackButton;
 const styles = StyleSheet.create({
   textHeader: { fontSize: 42 },
   button: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     padding: 5,
-    borderRadius: theme.radius.sm,
   },
 });

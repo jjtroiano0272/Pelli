@@ -8,12 +8,15 @@ import { getUserData } from "@/services/userService";
 import {
   PaperProvider as PaperThemeProvider,
   useTheme as usePaperTheme,
+  MD3LightTheme,
+  MD3Theme,
+  MD3DarkTheme,
 } from "react-native-paper";
 // import * as i18n from '@/i18n';
 // import i18next from 'i18next';
 import { initI18n } from "@/i18n";
 // import AnimatedSplash from 'react-native-animated-splash-screen';
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import { getItem } from "@/utils/asyncStorage";
 import {
   configureReanimatedLogger,
@@ -32,6 +35,80 @@ LogBox.ignoreLogs([
   "Warning: MemoizedTNodeRenderer",
   "Warning: TRenderEngineProvider",
 ]);
+
+declare global {
+  namespace ReactNativePaper {
+    interface ThemeColors {
+      myOwnColor: string;
+    }
+
+    interface Theme {
+      myOwnProperty: boolean;
+
+      fontWeight: {
+        medium: string;
+        semibold: string;
+        bold: string;
+        extraBold: string;
+      };
+
+      radius: {
+        xs: number;
+        sm: number;
+        md: number;
+        lg: number;
+        xl: number;
+        xxl: number;
+      };
+    }
+  }
+}
+
+const theme = {
+  ...MD3LightTheme,
+  ...MD3DarkTheme,
+  // Specify custom property
+  myOwnProperty: true,
+
+  // Specify custom property in nested object
+  colors: {
+    ...MD3LightTheme.colors,
+    ...MD3DarkTheme.colors,
+    myOwnColor: "#BADA55",
+  },
+
+  // colors: {
+  //   primary: '#00C26F',
+  //   primaryDark: '#00AC62',
+  //   dark: '#ЗЕЗЕЗЕ',
+  //   darkLight: '#E1E1E1',
+  //   gray: '#e3e3e3',
+  //   // #44:00
+
+  //   text: '#494949',
+  //   textLight: '#7C7C7C',
+  //   textDark: '#1D1D1D',
+
+  //   rose: '#ef4444',
+  //   roseLight: '#f87171',
+  // },
+
+  fontWeight: {
+    medium: "500",
+    semibold: "600",
+    bold: "700",
+    extraBold: "800",
+  },
+
+  radius: {
+    xs: 10,
+    sm: 12,
+    md: 14,
+    lg: 16,
+    xl: 18,
+    xxl: 22,
+  },
+};
 
 const _layout = () => {
   return (
@@ -112,8 +189,8 @@ const MainLayout = () => {
           justifyContent: "center",
           alignItems: "center",
           backgroundColor: paperTheme.colors.background, // Match your modal's background color
-          borderTopLeftRadius: theme.radius.xxl,
-          borderTopRightRadius: theme.radius.xxl,
+          borderTopLeftRadius: myTheme.radius.xxl,
+          borderTopRightRadius: myTheme.radius.xxl,
         }}
       >
         <View

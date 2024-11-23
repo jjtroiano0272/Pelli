@@ -4,17 +4,13 @@ import { Link, useRouter } from "expo-router";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { StatusBar } from "expo-status-bar";
 import { wp, hp } from "../helpers/common";
-import { theme } from "../constants/theme";
 import Button from "@/components/Button";
-import {
-  useTheme as usePaperTheme,
-  Button as PaperButton,
-} from "react-native-paper";
+import { Button as PaperButton, withTheme, useTheme } from "react-native-paper";
 import { translate } from "@/i18n";
 import { removeItem } from "@/utils/asyncStorage";
 
 const Welcome = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const router = useRouter();
   const handleReset = async () => {
     await removeItem("onboarded");
@@ -37,7 +33,7 @@ const Welcome = () => {
             style={[
               styles.title,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
@@ -47,7 +43,7 @@ const Welcome = () => {
             style={[
               styles.punchline,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
@@ -67,7 +63,7 @@ const Welcome = () => {
               style={[
                 styles.loginText,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
                 },
               ]}
             >
@@ -79,8 +75,8 @@ const Welcome = () => {
                   styles.loginText,
                   // @ts-ignore
                   {
-                    color: paperTheme.colors.onBackground,
-                    fontWeight: theme.fonts.semibold,
+                    color: theme.colors.onBackground,
+                    fontWeight: "600",
                   },
                 ]}
               >
@@ -109,7 +105,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: hp(4),
     textAlign: "center",
-    // theme.fonts.extraBold
+    // theme.fontWeight.extraBold
     fontWeight: "800",
   },
   punchline: {

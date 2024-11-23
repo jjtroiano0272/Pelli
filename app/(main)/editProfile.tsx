@@ -1,4 +1,4 @@
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 import {
   ScrollView,
   StyleSheet,
@@ -7,27 +7,29 @@ import {
   Image,
   Pressable,
   Alert,
-} from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Link, useRouter } from 'expo-router';
-import ScreenWrapper from '@/components/ScreenWrapper';
-import Header from '@/components/Header';
-import { useAuth } from '@/context/AuthContext';
-import { getUserImageSrc, uploadFile } from '@/services/imageService';
-import Icon from '@/assets/icons';
-import { hp, wp } from '@/helpers/common';
-import { theme } from '@/constants/theme';
-import Input from '@/components/Input';
-import Button from '@/components/Button';
-import { removeUser, updateUser } from '@/services/userService';
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { Link, useRouter } from "expo-router";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import Header from "@/components/Header";
+import { useAuth } from "@/context/AuthContext";
+import { getUserImageSrc, uploadFile } from "@/services/imageService";
+import Icon from "@/assets/icons";
+import { hp, wp } from "@/helpers/common";
+import { myTheme } from "@/constants/theme";
+import Input from "@/components/Input";
+import Button from "@/components/Button";
+import { removeUser, updateUser } from "@/services/userService";
 import {
-  useTheme as usePaperTheme,
+  useTheme as usetheme,
   Button as PaperButton,
-} from 'react-native-paper';
-import { faker, tr } from '@faker-js/faker';
-import { supabase } from '@/lib/supabase';
-import * as Haptics from 'expo-haptics';
-import { translate } from '@/i18n';
+  withTheme,
+  useTheme,
+} from "react-native-paper";
+import { faker, tr } from "@faker-js/faker";
+import { supabase } from "@/lib/supabase";
+import * as Haptics from "expo-haptics";
+import { translate } from "@/i18n";
 
 type User = {
   name: string;
@@ -38,27 +40,27 @@ type User = {
 };
 
 const editProfile = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const { user: currentUser, setUserData } = useAuth();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const [user, setUser] = useState<User>({
-    name: '',
-    phoneNumber: '',
+    name: "",
+    phoneNumber: "",
     image: null,
-    bio: '',
-    address: '',
+    bio: "",
+    address: "",
   });
 
   useEffect(() => {
     if (currentUser) {
       setUser({
-        name: currentUser.name || '',
-        phoneNumber: currentUser.phoneNumber || '',
+        name: currentUser.name || "",
+        phoneNumber: currentUser.phoneNumber || "",
         image: currentUser.image || null,
-        address: currentUser.address || '',
-        bio: currentUser.bio || '',
+        address: currentUser.address || "",
+        bio: currentUser.bio || "",
       });
     }
   }, [currentUser]);
@@ -81,15 +83,15 @@ const editProfile = () => {
     let { name, phoneNumber, address, image, bio } = userData;
 
     if (!name || !phoneNumber || !address || !bio || !image) {
-      Alert.alert(translate('common:fieldsMissing'));
+      Alert.alert(translate("common:fieldsMissing"));
       return;
     }
 
     setLoading(true);
 
-    if (typeof image == 'object') {
+    if (typeof image == "object") {
       // upload this bishlet
-      let imageRes = await uploadFile('profiles', image?.uri, true);
+      let imageRes = await uploadFile("profiles", image?.uri, true);
       if (imageRes.success) userData.image = imageRes.data;
       else userData.image = null;
     }
@@ -108,24 +110,24 @@ const editProfile = () => {
     if (res.success) {
       await supabase.auth.signOut();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/welcome');
+      router.replace("/welcome");
     } else {
-      Alert.alert(translate('common:deleteTitle'), res.msg);
+      Alert.alert(translate("common:deleteTitle"), res.msg);
     }
   };
 
   const onPressDeleteAccount = async () => {
     Alert.alert(
-      translate('editProfileScreen:deletePromptTitle'),
-      translate('editProfileScreen:deletePromptDescription'),
+      translate("editProfileScreen:deletePromptTitle"),
+      translate("editProfileScreen:deletePromptDescription"),
       [
         {
-          text: translate('common:cancel'),
+          text: translate("common:cancel"),
           onPress: () => {},
-          style: 'cancel',
+          style: "cancel",
         },
         {
-          text: translate('common:confirmDelete'),
+          text: translate("common:confirmDelete"),
           onPress: () => {
             // Adjective +  Noun
             const randomizedString = [faker.word.adjective(), faker.word.noun()]
@@ -134,14 +136,14 @@ const editProfile = () => {
                   ? word.charAt(0).toUpperCase() + word.slice(1)
                   : word.charAt(0).toUpperCase() + word.slice(1)
               )
-              .join('');
+              .join("");
 
             Alert.prompt(
-              translate('common:areYouSure'),
+              translate("common:areYouSure"),
               `${translate(
-                'editProfileScreen:deleteAccountFinal'
+                "editProfileScreen:deleteAccountFinal"
               )}\n\n${randomizedString}`,
-              userEnteredText => {
+              (userEnteredText) => {
                 // Check that text matches
                 if (userEnteredText == randomizedString) {
                   submitDeleteAccount();
@@ -149,7 +151,7 @@ const editProfile = () => {
               }
             );
           },
-          style: 'destructive',
+          style: "destructive",
         },
       ],
       {
@@ -160,7 +162,7 @@ const editProfile = () => {
   };
 
   let imageSource =
-    user.image && typeof user.image == 'object'
+    user.image && typeof user.image == "object"
       ? user.image
       : getUserImageSrc(user?.image);
 
@@ -168,7 +170,7 @@ const editProfile = () => {
     <ScreenWrapper>
       <View style={styles.container}>
         <ScrollView style={{ flex: 1 }}>
-          <Header title={translate('editProfileScreen:title')} />
+          <Header title={translate("editProfileScreen:title")} />
 
           <View style={styles.form}>
             <View style={styles.avatarContainer}>
@@ -177,7 +179,8 @@ const editProfile = () => {
                 style={[
                   styles.avatar,
                   {
-                    borderColor: paperTheme.colors.outline,
+                    borderColor: theme.colors.outline,
+                    borderRadius: myTheme.radius.xxl * 1.8,
                   },
                 ]}
               />
@@ -185,49 +188,49 @@ const editProfile = () => {
                 style={[
                   styles.cameraIcon,
                   {
-                    shadowColor: paperTheme.colors.shadow,
+                    shadowColor: theme.colors.shadow,
                   },
                 ]}
                 onPress={onPickImage}
               >
-                <Icon name='userEdit' />
+                <Icon name="userEdit" />
               </Pressable>
             </View>
 
             <Text
               style={{
                 fontSize: hp(1.5),
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               }}
             >
-              {translate('editProfileScreen:formPrompt')}
+              {translate("editProfileScreen:formPrompt")}
             </Text>
             <Input
-              icon={<Icon name='user' />}
-              placeholder={translate('common:nameInputPlaceholder')}
+              icon={<Icon name="user" />}
+              placeholder={translate("common:nameInputPlaceholder")}
               value={user.name}
               onChangeText={(value: string) =>
                 setUser({ ...user, name: value })
               }
             />
             <Input
-              icon={<Icon name='phone' />}
-              placeholder={translate('common:phoneInputPlaceholder')}
+              icon={<Icon name="phone" />}
+              placeholder={translate("common:phoneInputPlaceholder")}
               value={user.phoneNumber}
               onChangeText={(value: string) =>
                 setUser({ ...user, phoneNumber: value })
               }
             />
             <Input
-              icon={<Icon name='location' />}
-              placeholder={translate('common:addressInputPlaceholder')}
+              icon={<Icon name="location" />}
+              placeholder={translate("common:addressInputPlaceholder")}
               value={user.address}
               onChangeText={(value: string) =>
                 setUser({ ...user, address: value })
               }
             />
             <Input
-              placeholder={translate('common:bioInputPlaceholder')}
+              placeholder={translate("common:bioInputPlaceholder")}
               value={user.bio}
               multiline={true}
               containerStyle={styles.bio}
@@ -235,7 +238,7 @@ const editProfile = () => {
             />
 
             <Button
-              title={translate('common:update')}
+              title={translate("common:update")}
               loading={loading}
               onPress={onSubmit}
             />
@@ -251,11 +254,11 @@ const editProfile = () => {
             /> */}
 
             <PaperButton
-              children={translate('editProfileScreen:deleteAccountButtonTitle')}
+              children={translate("editProfileScreen:deleteAccountButtonTitle")}
               uppercase
-              mode='outlined'
+              mode="outlined"
               onPress={onPressDeleteAccount}
-              textColor={paperTheme.colors.error}
+              textColor={theme.colors.error}
             />
           </View>
         </ScrollView>
@@ -264,47 +267,46 @@ const editProfile = () => {
   );
 };
 
-export default editProfile;
+export default withTheme(editProfile);
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: wp(4) },
   textHeader: { fontSize: 42 },
 
   form: { gap: 18, marginTop: 20 },
-  avatarContainer: { height: hp(14), width: hp(14), alignSelf: 'center' },
+  avatarContainer: { height: hp(14), width: hp(14), alignSelf: "center" },
   avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: theme.radius.xxl * 1.8,
-    borderCurve: 'continuous',
+    width: "100%",
+    height: "100%",
+    borderCurve: "continuous",
     borderWidth: 1,
   },
   cameraIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: -18,
     padding: 8,
     borderRadius: 50,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 7,
   },
   input: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderWidth: wp(0.4),
     // borderColor: theme.colors.text,
-    borderRadius: theme.radius.xxl,
-    borderCurve: 'continuous',
+    // borderRadius: theme.radius.xxl,
+    borderCurve: "continuous",
     padding: 17,
     paddingHorizontal: 20,
     gap: 15,
   },
   bio: {
-    flexDirection: 'row',
+    flexDirection: "row",
     height: hp(15),
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     paddingVertical: 15,
   },
 });

@@ -6,10 +6,15 @@ import Loading from "@/components/Loading";
 // @ts-ignore
 import AnimatedSplash from "react-native-animated-splash-screen";
 import { getItem } from "@/utils/asyncStorage";
-import { useTheme as usePaperTheme } from "react-native-paper";
+import {
+  useTheme as usePaperTheme,
+  useTheme,
+  withTheme,
+} from "react-native-paper";
+import { myTheme } from "@/constants/theme";
 
 const index = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const [showOnboarding, setShowOnboarding] = useState<boolean | number | null>(
     null
   );
@@ -34,7 +39,7 @@ const index = () => {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: paperTheme.colors.background,
+        backgroundColor: theme.colors.background,
       }}
     >
       <Loading />
@@ -43,8 +48,3 @@ const index = () => {
 };
 
 export default index;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  textHeader: { fontSize: 42 },
-});

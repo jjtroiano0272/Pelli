@@ -1,13 +1,13 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React from 'react';
-import { Link } from 'expo-router';
-import { theme } from '@/constants/theme';
-import { hp } from '@/helpers/common';
-import Avatar from './Avatar';
-import moment from 'moment';
-import Icon from '@/assets/icons';
-import { useTheme as usePaperTheme } from 'react-native-paper';
-import { translate } from '@/i18n';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Link } from "expo-router";
+import { myTheme } from "@/constants/theme";
+import { hp } from "@/helpers/common";
+import Avatar from "./Avatar";
+import moment from "moment";
+import Icon from "@/assets/icons";
+import { useTheme, withTheme } from "react-native-paper";
+import { translate } from "@/i18n";
 
 const CommentItem = ({
   item,
@@ -15,23 +15,23 @@ const CommentItem = ({
   onDelete = () => {},
   highlight = false,
 }) => {
-  const paperTheme = usePaperTheme();
-  const createdAt = moment(item?.created_at).format('MMM d');
+  const theme = useTheme();
+  const createdAt = moment(item?.created_at).format("MMM d");
 
   const handleDelete = () => {
     Alert.alert(
-      translate('common:confirm'),
-      translate('postDetailsSreen:confirmDeletePost'),
+      translate("common:confirm"),
+      translate("postDetailsSreen:confirmDeletePost"),
       [
         {
-          text: translate('common:cancel'),
+          text: translate("common:cancel"),
           onPress: () => console.log(`canceled`),
-          style: 'cancel',
+          style: "cancel",
         },
         {
-          text: translate('common:deleteTitle'),
+          text: translate("common:deleteTitle"),
           onPress: () => onDelete(item),
-          style: 'destructive',
+          style: "destructive",
         },
       ]
     );
@@ -44,23 +44,24 @@ const CommentItem = ({
         style={[
           styles.content,
           {
-            backgroundColor: paperTheme.colors.elevation.level2,
+            backgroundColor: theme.colors.elevation.level2,
+            borderRadius: myTheme.radius.md,
           },
           highlight && [
             styles.highlight,
             {
-              backgroundColor: paperTheme.colors.background,
-              borderColor: paperTheme.colors.outline,
-              shadowColor: paperTheme.colors.shadow,
+              backgroundColor: theme.colors.background,
+              borderColor: theme.colors.outline,
+              shadowColor: theme.colors.shadow,
             },
           ],
         ]}
       >
         <View
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <View style={styles.nameContainer}>
@@ -68,27 +69,28 @@ const CommentItem = ({
               style={[
                 styles.text,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
+                  fontWeight: "500",
                 },
               ]}
             >
               {item?.user?.name}
             </Text>
             <Text>•</Text>
-            <Text style={[styles.text, { color: paperTheme.colors.secondary }]}>
+            <Text style={[styles.text, { color: theme.colors.secondary }]}>
               {createdAt}
             </Text>
           </View>
           {canDelete && (
             <TouchableOpacity onPress={handleDelete}>
-              <Icon name='delete' size={20} color={paperTheme.colors.error} />
+              <Icon name="delete" size={20} color={theme.colors.error} />
             </TouchableOpacity>
           )}
         </View>
         <Text
           style={[
             styles.text,
-            { fontWeight: 'normal', color: paperTheme.colors.onBackground },
+            { fontWeight: "normal", color: theme.colors.onBackground },
           ]}
         >
           {item?.text}
@@ -103,7 +105,7 @@ export default CommentItem;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 7,
   },
   content: {
@@ -111,8 +113,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: theme.radius.md,
-    borderCurve: 'continuous',
+    borderCurve: "continuous",
   },
   highlight: {
     borderWidth: 0.2,
@@ -122,13 +123,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 3,
   },
   text: {
     fontSize: hp(1.6),
     // @ts-ignore
-    fontWeight: theme.fonts.medium,
   },
 });

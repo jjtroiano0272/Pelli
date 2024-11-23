@@ -1,18 +1,18 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Link, useRouter } from 'expo-router';
-import { useAuth } from '@/context/AuthContext';
-import { fetchNotifications } from '@/services/notificationService';
-import { hp, wp } from '@/helpers/common';
-import { theme } from '@/constants/theme';
-import ScreenWrapper from '@/components/ScreenWrapper';
-import NotificationItem from '@/components/NotificationItem';
-import Header from '@/components/Header';
-import { useTheme as usePaperTheme } from 'react-native-paper';
-import { translate } from '@/i18n';
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Link, useRouter } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import { fetchNotifications } from "@/services/notificationService";
+import { hp, wp } from "@/helpers/common";
+import { myTheme } from "@/constants/theme";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import NotificationItem from "@/components/NotificationItem";
+import Header from "@/components/Header";
+import { useTheme, withTheme } from "react-native-paper";
+import { translate } from "@/i18n";
 
 const Notifications = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const [notifications, setNotifications] = useState([]);
   const { user } = useAuth();
   const router = useRouter();
@@ -33,14 +33,14 @@ const Notifications = () => {
     <ScreenWrapper>
       <View style={styles.container}>
         <Header
-          title={translate('common:notifications')}
+          title={translate("common:notifications")}
           showBackButton={true}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listStyle}
         >
-          {notifications.map(item => {
+          {notifications.map((item) => {
             return (
               <NotificationItem item={item} key={item?.id} router={router} />
             );
@@ -50,11 +50,12 @@ const Notifications = () => {
               style={[
                 styles.noData,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
+                  fontWeight: "500",
                 },
               ]}
             >
-              {translate('common:allCaughtUp')}
+              {translate("common:allCaughtUp")}
             </Text>
           )}
         </ScrollView>
@@ -73,8 +74,6 @@ const styles = StyleSheet.create({
   },
   noData: {
     fontSize: hp(1.8),
-    // @ts-ignore
-    fontWeight: theme.fonts.medium,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

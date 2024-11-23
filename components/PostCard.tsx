@@ -16,7 +16,6 @@ import {
 import React, { useEffect, useState } from "react";
 import { Link } from "expo-router";
 import { destringifyArray, hp, stripHtmlTags, wp } from "@/helpers/common";
-import { theme } from "@/constants/theme";
 import Avatar from "./Avatar";
 import moment from "moment";
 import Icon from "@/assets/icons";
@@ -25,15 +24,15 @@ import { downloadFile, getSupabaseFileUrl } from "@/services/imageService";
 import {
   blockUser,
   createPostLike,
-  markPostNsfw,
   removePostLike,
 } from "@/services/postService";
 import Loading from "./Loading";
 import {
-  useTheme as usePaperTheme,
   IconButton,
   Icon as PaperIcon,
   Snackbar,
+  useTheme,
+  withTheme,
 } from "react-native-paper";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
@@ -44,6 +43,7 @@ import { supabase } from "@/lib/supabase";
 import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
 import { Video } from "expo-av";
+import { myTheme } from "@/constants/theme";
 
 const PostCard = ({
   item,
@@ -58,13 +58,13 @@ const PostCard = ({
   canNavigateToUser = true,
   interactable = true,
 }: any) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const [snackbarVisible, setVisible] = React.useState(false);
   const onToggleSnackBar = () => setVisible(!snackbarVisible);
   const onDismissSnackBar = () => setVisible(false);
 
   const textStyle = {
-    color: paperTheme.colors.onBackground,
+    color: theme.colors.onBackground,
     fontSize: hp(1.75),
   };
 
@@ -72,8 +72,8 @@ const PostCard = ({
     div: textStyle,
     p: textStyle,
     ol: textStyle,
-    h1: { color: paperTheme.colors.onBackground },
-    h4: { color: paperTheme.colors.onBackground },
+    h1: { color: theme.colors.onBackground },
+    h4: { color: theme.colors.onBackground },
   };
 
   const shadowStyles = {
@@ -102,7 +102,7 @@ const PostCard = ({
     });
   };
 
-  const onPressMore = async (userId?: string, userName: string) => {
+  const onPressMore = async (userId: string, userName: string) => {
     // TODO: So then what with Android???
     // Remember though if it's the same as the current user Id, you shouldn't show this option...it makes no fucking sense.
 
@@ -274,18 +274,15 @@ const PostCard = ({
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    console.log(`item: ${JSON.stringify(item, null, 2)}`);
-  }, []);
-
   return (
     <Pressable
       onPress={interactable ? openPostDetails : null}
       style={[
         styles.container,
         {
-          backgroundColor: paperTheme.colors.background,
-          borderColor: paperTheme.colors.secondary,
+          backgroundColor: theme.colors.background,
+          borderColor: theme.colors.secondary,
+          borderRadius: myTheme.radius.xxl * 1.1,
         },
         hasShadow && shadowStyles,
       ]}
@@ -300,14 +297,15 @@ const PostCard = ({
             <Avatar
               size={hp(4.5)}
               uri={item?.user?.image}
-              rounded={theme.radius.md}
+              rounded={myTheme.radius.md}
             />
             <View style={{ gap: 2 }}>
               <Text
                 style={[
                   styles.username,
                   {
-                    color: paperTheme.colors.onBackground,
+                    color: theme.colors.onBackground,
+                    fontWeight: "500",
                   },
                 ]}
               >
@@ -317,7 +315,8 @@ const PostCard = ({
                 style={[
                   styles.postTime,
                   {
-                    color: paperTheme.colors.secondary,
+                    color: theme.colors.secondary,
+                    fontWeight: "500",
                   },
                 ]}
               >
@@ -338,7 +337,7 @@ const PostCard = ({
               name="moreHorizontal"
               size={hp(3.4)}
               strokeWidth={3}
-              color={paperTheme.colors.onBackground}
+              color={theme.colors.onBackground}
             />
           </TouchableOpacity>
         )}
@@ -351,15 +350,12 @@ const PostCard = ({
               <Icon
                 name="edit"
                 size={hp(2.5)}
-                color={paperTheme.colors.onBackground}
+                color={theme.colors.onBackground}
               />
             </TouchableOpacity>
+            {/* TODO Change null to undefined? */}
             <TouchableOpacity onPress={interactable ? handlePostDelete : null}>
-              <Icon
-                name="delete"
-                size={hp(2.5)}
-                color={paperTheme.colors.error}
-              />
+              <Icon name="delete" size={hp(2.5)} color={theme.colors.error} />
             </TouchableOpacity>
           </View>
         )}
@@ -371,17 +367,18 @@ const PostCard = ({
         onPress={interactable ? openPostDetails : null}
       >
         <View style={styles.postBody}>
-          {/* Client's name */}
-          {item?.client_name && (
+          {item?.client?.first_name && (
             <Text
               // @ts-ignore
               style={{
-                color: paperTheme.colors.secondary,
-                fontWeight: theme.fonts.semibold,
+                color: theme.colors.secondary,
+                fontWeight: "600",
                 marginVertical: 10,
               }}
             >
-              {`>>`} {translate("homeScreen:clientName")}: {item.client_name}
+              {`>>`} {translate("homeScreen:clientName")}:{" "}
+              {item.client.first_name}{" "}
+              {item.client.last_name && item.client.last_name}
             </Text>
           )}
 
@@ -395,8 +392,8 @@ const PostCard = ({
             item?.formula_info.formula_description && (
               <View
                 style={{
-                  backgroundColor: paperTheme.colors.elevation.level2,
-                  borderRadius: theme.radius.md,
+                  backgroundColor: theme.colors.elevation.level2,
+                  borderRadius: myTheme.radius.md,
                   padding: 12,
                   marginBottom: 5,
 
@@ -413,8 +410,8 @@ const PostCard = ({
                   <Text
                     // @ts-ignore
                     style={{
-                      color: paperTheme.colors.secondary,
-                      fontWeight: theme.fonts.semibold,
+                      color: theme.colors.secondary,
+                      fontWeight: "600",
                     }}
                   >
                     {item.formula_info?.formula_type.toUpperCase()}
@@ -428,8 +425,8 @@ const PostCard = ({
                             key={index}
                             // @ts-ignore
                             style={{
-                              color: paperTheme.colors.secondary,
-                              fontWeight: theme.fonts.medium,
+                              color: theme.colors.secondary,
+                              fontWeight: "500",
                             }}
                           >
                             {descPart.trim()}
@@ -457,7 +454,7 @@ const PostCard = ({
                   >
                     <PaperIcon
                       source={"clipboard-outline"}
-                      color={paperTheme.colors.primary}
+                      color={theme.colors.primary}
                       size={24}
                     />
                   </TouchableOpacity>
@@ -517,11 +514,11 @@ const PostCard = ({
                 transition={{
                   type: "timing",
                 }}
-                animate={{ backgroundColor: paperTheme.colors.background }}
+                animate={{ backgroundColor: theme.colors.background }}
               >
                 <Skeleton
                   show={isLoading}
-                  colorMode={paperTheme.dark ? "dark" : "light"}
+                  colorMode={theme.dark ? "dark" : "light"}
                 >
                   <Image
                     source={getSupabaseFileUrl(item)}
@@ -550,16 +547,21 @@ const PostCard = ({
                   type: "timing",
                 }}
                 // style={{ flex: 1, padding: 16 }}
-                animate={{ backgroundColor: paperTheme.colors.background }}
+                animate={{ backgroundColor: theme.colors.background }}
               >
                 <Skeleton
                   show={isLoading}
-                  colorMode={paperTheme.dark ? "dark" : "light"}
+                  colorMode={theme.dark ? "dark" : "light"}
                 >
                   <Image
                     source={getSupabaseFileUrl(item?.file)!}
                     transition={100}
-                    style={styles.postMedia}
+                    style={[
+                      styles.postMedia,
+                      {
+                        borderRadius: myTheme.radius.xl,
+                      },
+                    ]}
                     onLoad={handleImageLoad}
                     contentFit="cover"
                   />
@@ -597,17 +599,15 @@ const PostCard = ({
             <Icon
               name="heart"
               size={24}
-              fill={liked ? paperTheme.colors.error : "transparent"}
-              color={
-                liked ? paperTheme.colors.error : paperTheme.colors.secondary
-              }
+              fill={liked ? theme.colors.error : "transparent"}
+              color={liked ? theme.colors.error : theme.colors.secondary}
             />
           </TouchableOpacity>
           <Text
             style={[
               styles.count,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
@@ -616,17 +616,13 @@ const PostCard = ({
         </View>
         <View style={styles.footerButton}>
           <TouchableOpacity onPress={interactable ? openPostDetails : null}>
-            <Icon
-              name="comment"
-              size={24}
-              color={paperTheme.colors.secondary}
-            />
+            <Icon name="comment" size={24} color={theme.colors.secondary} />
           </TouchableOpacity>
           <Text
             style={[
               styles.count,
               {
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
               },
             ]}
           >
@@ -638,11 +634,7 @@ const PostCard = ({
             <Loading size={"small"} />
           ) : (
             <TouchableOpacity onPress={interactable ? onShare : null}>
-              <Icon
-                name="share"
-                size={24}
-                color={paperTheme.colors.secondary}
-              />
+              <Icon name="share" size={24} color={theme.colors.secondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -672,7 +664,6 @@ const styles = StyleSheet.create({
   container: {
     gap: 10,
     marginBottom: 15,
-    borderRadius: theme.radius.xxl * 1.1,
     borderCurve: "continuous",
     padding: 10,
     paddingVertical: 12,
@@ -687,13 +678,10 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: hp(1.7),
-    // @ts-ignore
-    fontWeight: theme.fonts.medium,
   },
   postTime: {
     fontSize: hp(1.4),
     // @ts-ignore
-    fontWeight: theme.fonts.medium,
   },
   content: {
     gap: 10,
@@ -702,7 +690,6 @@ const styles = StyleSheet.create({
   postMedia: {
     height: hp(40),
     width: "100%",
-    borderRadius: theme.radius.xl,
     borderCurve: "continuous",
   },
   postBody: {

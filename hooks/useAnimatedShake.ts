@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import {
   Easing,
   useAnimatedStyle,
@@ -8,7 +8,7 @@ import {
   withSequence,
   withSpring,
   withTiming,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
 export const useAnimatedShake = () => {
   const shakeTranslateX = useSharedValue(0);

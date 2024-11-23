@@ -5,7 +5,6 @@
   |----------------------------------------------------------------------------------------------------
 */
 }
-
 import {
   Alert,
   FlatList,
@@ -13,38 +12,40 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableOpacityBase,
   View,
-} from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
-import { useAuth } from '@/context/AuthContext';
-import ScreenWrapper from '@/components/ScreenWrapper';
-import Header from '@/components/Header';
-import { hp, wp } from '@/helpers/common';
-import Icon from '@/assets/icons';
-import { theme } from '@/constants/theme';
-import { supabase } from '@/lib/supabase';
-import Avatar from '@/components/Avatar';
-import { fetchPosts, fetchUserDetails } from '@/services/postService';
-import PostCard from '@/components/PostCard';
-import Loading from '@/components/Loading';
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import Header from "@/components/Header";
+import { hp, wp } from "@/helpers/common";
+import Icon from "@/assets/icons";
+import { myTheme } from "@/constants/theme";
+import { supabase } from "@/lib/supabase";
+import Avatar from "@/components/Avatar";
+import { fetchPosts, fetchUserDetails } from "@/services/postService";
+import PostCard from "@/components/PostCard";
+import Loading from "@/components/Loading";
 import {
-  useTheme as usePaperTheme,
+  useTheme as usetheme,
   Button as PaperButton,
   IconButton,
   Switch,
-} from 'react-native-paper';
-import { translate } from '@/i18n';
-import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserData, updateUser } from '@/services/userService';
+  withTheme,
+  useTheme,
+} from "react-native-paper";
+import { translate } from "@/i18n";
+import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserData, updateUser } from "@/services/userService";
 
 var limit = 0;
 
 const UserProfile = () => {
+  const theme = useTheme();
   const { targetUserId } = useLocalSearchParams();
-  const paperTheme = usePaperTheme();
+
   const { user } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<any>([]);
@@ -65,7 +66,7 @@ const UserProfile = () => {
     );
 
     if (res.success) {
-      if (posts.length == res.data.length) {
+      if (posts.length == res?.data?.length) {
         setHasMore(false);
       }
 
@@ -100,14 +101,14 @@ const UserProfile = () => {
         data={posts}
         ListHeaderComponent={
           <>
-            <UserHeader user={userData} router={router} />
+            <UserHeader user={userData} router={router} theme={theme} />
             <View
               style={[
                 styles.horizontalLine,
-                { borderBottomColor: paperTheme.colors.onBackground },
+                { borderBottomColor: theme.colors.onBackground },
               ]}
             />
-            <Text style={{ color: paperTheme.colors.secondary }}>
+            <Text style={{ color: theme.colors.secondary }}>
               {/* TODO Translate */}
               Recent posts
             </Text>
@@ -129,7 +130,7 @@ const UserProfile = () => {
         }
         onEndReached={() => {
           getPosts();
-          console.log('End reached!');
+          console.log("End reached!");
         }}
         ListFooterComponent={
           hasMore ? (
@@ -142,11 +143,11 @@ const UserProfile = () => {
                 style={[
                   styles.noPosts,
                   {
-                    color: paperTheme.colors.onBackground,
+                    color: theme.colors.onBackground,
                   },
                 ]}
               >
-                {translate('common:endOfList')}
+                {translate("common:endOfList")}
               </Text>
             </View>
           )
@@ -157,17 +158,17 @@ const UserProfile = () => {
 };
 
 const UserHeader = ({ user }: { [key: string]: any }) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: paperTheme.colors.background,
+        backgroundColor: theme.colors.background,
         paddingHorizontal: wp(4),
       }}
     >
       <View>
-        <Header title={translate('common:profile')} showBackButton />
+        <Header title={translate("common:profile")} showBackButton />
       </View>
 
       <View style={styles.container}>
@@ -176,16 +177,16 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
             <Avatar
               uri={user?.image}
               size={hp(12)}
-              rounded={theme.radius.xxl * 1.4}
+              rounded={myTheme.radius.xxl * 1.4}
             />
           </View>
 
-          <View style={{ alignItems: 'center' }}>
+          <View style={{ alignItems: "center" }}>
             <Text
               style={[
                 styles.username,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
                 },
               ]}
             >
@@ -195,7 +196,7 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
               style={[
                 styles.infoText,
                 {
-                  color: paperTheme.colors.onSurface,
+                  color: theme.colors.onSurface,
                 },
               ]}
             >
@@ -207,11 +208,11 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
             {user && user.email && (
               <View style={styles.info}>
                 {/* name mail */}
-                <Icon name='email' color={paperTheme.colors.secondary} />
+                <Icon name="email" color={theme.colors.secondary} />
                 <Text
                   style={[
                     styles.infoText,
-                    { color: paperTheme.colors.onBackground },
+                    { color: theme.colors.onBackground },
                   ]}
                 >
                   {user.email}
@@ -221,11 +222,11 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
             {user && user?.phoneNumber && (
               <View style={styles.info}>
                 {/* name call/phone */}
-                <Icon name='phone' color={paperTheme.colors.secondary} />
+                <Icon name="phone" color={theme.colors.secondary} />
                 <Text
                   style={[
                     styles.infoText,
-                    { color: paperTheme.colors.onBackground },
+                    { color: theme.colors.onBackground },
                   ]}
                 >
                   {user && user.phoneNumber}
@@ -234,10 +235,7 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
             )}
             {user && user?.bio && (
               <Text
-                style={[
-                  styles.infoText,
-                  { color: paperTheme.colors.onBackground },
-                ]}
+                style={[styles.infoText, { color: theme.colors.onBackground }]}
               >
                 {user && user.bio}
               </Text>
@@ -252,38 +250,21 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
 export default UserProfile;
 
 const styles = StyleSheet.create({
-  textHeader: { fontSize: 42 },
-
   container: {
     flex: 1,
     // paddingHorizontal: wp (4)
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
     marginHorizontal: wp(4),
   },
-  title: {
-    // color: theme.colors.text,
-    fontSize: hp(3.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
-  },
-  avatarImage: {
-    height: hp(4.3),
-    width: hp(4.3),
-    borderRadius: theme.radius.sm,
-    borderCurve: 'continuous',
-    // borderColor: theme.colors.gray,
-    borderWidth: 3,
-  },
-
   icons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 18,
   },
   headerContainer: {
@@ -297,15 +278,15 @@ const styles = StyleSheet.create({
   avatarContainer: {
     height: hp(12),
     width: hp(12),
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   editIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: -12,
     padding: 7,
     borderRadius: 50,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
@@ -313,22 +294,16 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: hp(3),
-    fontWeight: '500',
+    fontWeight: "500",
   },
   info: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   infoText: {
     fontSize: hp(1.6),
-    fontWeight: '500',
-  },
-  logoutButton: {
-    position: 'absolute',
-    right: 0,
-    padding: 5,
-    borderRadius: theme.radius.sm,
+    fontWeight: "500",
   },
   listStyle: {
     paddingHorizontal: wp(4),
@@ -336,36 +311,30 @@ const styles = StyleSheet.create({
   },
   noPosts: {
     fontSize: hp(2),
-    textAlign: 'center',
+    textAlign: "center",
   },
   pill: {
-    position: 'absolute',
+    position: "absolute",
     right: -10,
     top: -4,
     height: hp(2.2),
     width: hp(2.2),
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
     // backgroundColor: theme.colors.roseLight,
   },
-  pillText: {
-    color: 'white',
-    fontSize: hp(1.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
-  },
   horizontalLine: {
     marginVertical: 20,
-    justifyContent: 'center',
-    alignSelf: 'center',
+    justifyContent: "center",
+    alignSelf: "center",
     borderBottomWidth: 0.3,
     width: wp(50),
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     height: 50,
     // backgroundColor: '#f2f2f2',
     borderRadius: 8,
@@ -377,13 +346,13 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 9999,
     marginRight: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   rowLabel: {
     fontSize: 17,
-    fontWeight: '400',
+    fontWeight: "400",
     // color: '#0c0c0c',
   },
   rowSpacer: {
@@ -397,9 +366,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     paddingVertical: 12,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     // color: '#9e9e9e',
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1.1,
   },
 });

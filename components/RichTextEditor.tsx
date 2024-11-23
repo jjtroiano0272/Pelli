@@ -1,15 +1,15 @@
-import { Alert, Keyboard, StyleSheet, Text, View } from 'react-native';
-import React, { Ref } from 'react';
-import { Link } from 'expo-router';
+import { Alert, Keyboard, StyleSheet, Text, View } from "react-native";
+import React, { Ref } from "react";
+import { Link } from "expo-router";
 import {
   actions,
   RichEditor,
   RichToolbar,
-} from 'react-native-pell-rich-editor';
-import { theme } from '@/constants/theme';
-import Button from './Button';
-import { useTheme as usePaperTheme } from 'react-native-paper';
-import { translate } from '@/i18n';
+} from "react-native-pell-rich-editor";
+import { myTheme } from "@/constants/theme";
+import Button from "./Button";
+import { useTheme, withTheme } from "react-native-paper";
+import { translate } from "@/i18n";
 
 type Props = {
   editorRef: any;
@@ -19,7 +19,7 @@ type Props = {
 let heightScaleFactor = 0.85;
 
 const RichTextEditor = ({ editorRef, onChange }: Props) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
 
   return (
     <View style={{ minHeight: 285 * heightScaleFactor }}>
@@ -43,22 +43,21 @@ const RichTextEditor = ({ editorRef, onChange }: Props) => {
         ]}
         iconMap={{
           [actions.heading1]: ({ tintColor }: { tintColor: string }) => (
-            <Text style={{ color: tintColor, fontWeight: '800' }}>H1</Text>
+            <Text style={{ color: tintColor, fontWeight: "800" }}>H1</Text>
           ),
           [actions.heading4]: ({ tintColor }: { tintColor: string }) => (
-            <Text style={{ color: tintColor, fontWeight: '800' }}>H4</Text>
+            <Text style={{ color: tintColor, fontWeight: "800" }}>H4</Text>
           ),
         }}
-        style={[
-          styles.richBar,
-          {
-            backgroundColor: paperTheme.colors.backdrop,
-            // placeholderColor: theme.colors.gray,
-          },
-        ]}
+        style={{
+          backgroundColor: theme.colors.backdrop,
+          // placeholderColor: theme.colors.gray,
+          borderTopRightRadius: myTheme.radius.xl,
+          borderTopLeftRadius: myTheme.radius.xl,
+        }}
         flatContainerStyle={styles.flatStyle}
-        iconTint={paperTheme.colors.onBackground}
-        selectedIconTint={paperTheme.colors.onBackground}
+        iconTint={theme.colors.onBackground}
+        selectedIconTint={theme.colors.onBackground}
         editor={editorRef}
         disabled={false}
       />
@@ -68,17 +67,19 @@ const RichTextEditor = ({ editorRef, onChange }: Props) => {
         containerStyle={[
           styles.rich,
           {
-            borderColor: paperTheme.colors.backdrop,
+            borderColor: theme.colors.backdrop,
+            borderBottomLeftRadius: myTheme.radius.xl,
+            borderBottomRightRadius: myTheme.radius.xl,
           },
         ]}
         editorStyle={{
-          color: paperTheme.colors.onBackground,
-          backgroundColor: paperTheme.colors.background,
+          color: theme.colors.onBackground,
+          backgroundColor: theme.colors.background,
         }}
-        placeholder={translate('newPostScreen:postBodyPlaceholder')}
+        placeholder={translate("newPostScreen:postBodyPlaceholder")}
         onChange={onChange}
         onBlur={() => editorRef.current.blurContentEditor()}
-        autoCapitalize='sentences'
+        autoCapitalize="sentences"
       />
     </View>
   );
@@ -87,20 +88,15 @@ const RichTextEditor = ({ editorRef, onChange }: Props) => {
 export default RichTextEditor;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
   textHeader: { fontSize: 42 },
 
-  richBar: {
-    borderTopRightRadius: theme.radius.xl,
-    borderTopLeftRadius: theme.radius.xl,
-  },
   rich: {
     minHeight: 240 * heightScaleFactor,
     flex: 1,
     borderWidth: 1.5,
     borderTopWidth: 0,
-    borderBottomLeftRadius: theme.radius.xl,
-    borderBottomRightRadius: theme.radius.xl,
+
     padding: 5,
   },
 

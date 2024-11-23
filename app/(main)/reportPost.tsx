@@ -1,31 +1,34 @@
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import React, { useState } from 'react';
-import { Link, useLocalSearchParams, useRouter } from 'expo-router';
+import { Alert, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import {
   Button as PaperButton,
   Chip,
-  useTheme as usePaperTheme,
-} from 'react-native-paper';
-import { theme } from '@/constants/theme';
-import Header from '@/components/Header';
-import ScreenWrapper from '@/components/ScreenWrapper';
-import Button from '@/components/Button';
-import { reportPost } from '@/services/postService';
-import { hp, wp } from '@/helpers/common';
-import { useAuth } from '@/context/AuthContext';
-import { translate } from '@/i18n';
+  useTheme as usetheme,
+  withTheme,
+  useTheme,
+} from "react-native-paper";
+import { myTheme } from "@/constants/theme";
+import Header from "@/components/Header";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import Button from "@/components/Button";
+import { reportPost } from "@/services/postService";
+import { hp, wp } from "@/helpers/common";
+import { useAuth } from "@/context/AuthContext";
+import { translate } from "@/i18n";
 
 const ReportPost = () => {
   const { user: currentUser } = useAuth();
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
+
   const { postId } = useLocalSearchParams();
   const reportCategories = [
-    'Offensive image content',
-    'Offensive username',
-    'Hate Speech',
-    'Spam',
+    "Offensive image content",
+    "Offensive username",
+    "Hate Speech",
+    "Spam",
   ];
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -41,10 +44,10 @@ const ReportPost = () => {
     setLoading(false);
 
     if (res.success) {
-      console.log('success.');
+      console.log("success.");
       router.dismiss();
     } else {
-      Alert.alert('Error calling markPostNsfw', res.msg);
+      Alert.alert("Error calling markPostNsfw", res.msg);
     }
   };
 
@@ -54,16 +57,16 @@ const ReportPost = () => {
         style={[
           styles.container,
           {
-            // backgroundColor: paperTheme.colors.background,
-            // borderColor: paperTheme.colors.secondary,
+            // backgroundColor: theme.colors.background,
+            // borderColor: theme.colors.secondary,
           },
         ]}
       >
         <Header
-          title={translate('reportPostScreen:title')}
+          title={translate("reportPostScreen:title")}
           showBackButton={false}
         />
-        <Text>{translate('reportPostScreen:thankYou')}</Text>
+        <Text>{translate("reportPostScreen:thankYou")}</Text>
 
         <View style={{ flex: 1 }}>
           {reportCategories.map((category, index) => (
@@ -72,11 +75,11 @@ const ReportPost = () => {
               style={{ marginVertical: 15, height: hp(5.2) }}
               labelStyle={{
                 fontSize: 16,
-                justifyContent: 'center',
-                alignItems: 'flex-end',
+                justifyContent: "center",
+                alignItems: "flex-end",
               }}
               onPress={() => setSelectedCategory(category)}
-              mode={category === selectedCategory ? 'contained' : 'outlined'}
+              mode={category === selectedCategory ? "contained" : "outlined"}
             >
               {category}
             </PaperButton>
@@ -86,7 +89,7 @@ const ReportPost = () => {
           buttonStyle={{ height: hp(6.2) }}
           onPress={onSubmit}
           loading={loading}
-          title={translate('common:submit')}
+          title={translate("common:submit")}
           disabled={!!!selectedCategory}
         />
       </View>
@@ -117,25 +120,20 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: wp(4),
     gap: 15,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   // header: { flexDirection: 'row', justifyContent: 'space-between' },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   textHeader: { fontSize: 42 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10,
     marginHorizontal: wp(4),
-  },
-  title: {
-    fontSize: hp(3.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
   },
 });

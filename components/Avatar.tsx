@@ -1,23 +1,41 @@
-import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
-import { Link } from 'expo-router';
-import { hp } from '@/helpers/common';
-import { theme } from '@/constants/theme';
-import { Image } from 'expo-image';
-import { getUserImageSrc } from '@/services/imageService';
-import { useTheme as usePaperTheme } from 'react-native-paper';
+import {
+  ImageStyle,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
+import React, { useEffect } from "react";
+import { Link } from "expo-router";
+import { hp } from "@/helpers/common";
+import { Image } from "expo-image";
+import { getUserImageSrc } from "@/services/imageService";
+import { useTheme, withTheme } from "react-native-paper";
 
+interface AvatarProps {
+  uri: string;
+  size?: number;
+  rounded?: 14;
+  style?: StyleProp<ImageStyle>;
+}
 const Avatar = ({
   uri,
   size = hp(4.5),
-  rounded = theme.radius.md,
+  rounded = 14,
   style = {},
-}: any) => {
-  const paperTheme = usePaperTheme();
+}: AvatarProps) => {
+  const theme = useTheme();
+
+  useEffect(() => {
+    console.log(
+      `getUserImageSrc(uri): ${JSON.stringify(getUserImageSrc(uri), null, 2)}`
+    );
+  }, []);
 
   return (
     <Image
-      source={!uri?.includes('dicebear') ? getUserImageSrc(uri) : { uri: uri }}
+      source={!uri?.includes("dicebear") ? getUserImageSrc(uri) : { uri: uri }}
       transition={100}
       style={[
         styles.avatar,
@@ -25,7 +43,7 @@ const Avatar = ({
           height: size,
           width: size,
           borderRadius: rounded,
-          borderColor: paperTheme.colors.outline,
+          borderColor: theme.colors.outline,
         },
         style,
       ]}
@@ -36,10 +54,10 @@ const Avatar = ({
 export default Avatar;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
   textHeader: { fontSize: 42 },
   avatar: {
-    borderCurve: 'continuous',
+    borderCurve: "continuous",
     borderWidth: 1,
   },
 });

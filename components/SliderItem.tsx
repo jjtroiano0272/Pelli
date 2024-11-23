@@ -7,19 +7,23 @@ import {
   FlatList,
   TouchableOpacity,
   Dimensions,
-} from 'react-native';
-import React from 'react';
-import { Link } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { wp } from '@/helpers/common';
-import Icon from '@/assets/icons';
+} from "react-native";
+import React from "react";
+import { Link } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { wp } from "@/helpers/common";
+import Icon from "@/assets/icons";
 import Animated, {
   Extrapolation,
   interpolate,
   SharedValue,
   useAnimatedStyle,
-} from 'react-native-reanimated';
-import { useTheme as usePaperTheme } from 'react-native-paper';
+} from "react-native-reanimated";
+import {
+  useTheme as usePaperTheme,
+  useTheme,
+  withTheme,
+} from "react-native-paper";
 
 export type ImageSliderType = {
   title: string;
@@ -34,10 +38,10 @@ type Props = {
   onPress?: () => {};
 };
 
-const { width } = Dimensions.get('screen');
+const { width } = Dimensions.get("screen");
 
 export const SliderItem = ({ item, index, scrollX, onPress }: Props) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const imageScaleFactor = 1;
   const inactiveImageSizeFactor = 0.9;
   const rnAnimatedStyle = useAnimatedStyle(() => {
@@ -75,10 +79,10 @@ export const SliderItem = ({ item, index, scrollX, onPress }: Props) => {
         }}
       />
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8']}
+        colors={["transparent", "rgba(0,0,0,0.8"]}
         style={styles.background}
       >
-        <View style={{ alignItems: 'flex-end' }}>
+        <View style={{ alignItems: "flex-end" }}>
           {/* <TouchableOpacity
             style={[styles.icon, { backgroundColor: paperTheme.colors.error }]}
             onPress={() => onPress(item.image)}
@@ -95,39 +99,40 @@ export const SliderItem = ({ item, index, scrollX, onPress }: Props) => {
     </Animated.View>
   );
 };
+
 export default SliderItem;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
   textHeader: { fontSize: 42 },
   itemContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 20,
     width: wp(97), // was 100. Affects gap between photos
   },
   // Adjust this for styling within the card
   background: {
-    position: 'absolute',
+    position: "absolute",
     width: 300,
     height: 500,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     padding: 20,
     borderRadius: 20,
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: 1.5,
   },
   description: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
     letterSpacing: 1.2,
   },
   icon: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: "rgba(0,0,0,0.3)",
     padding: 5,
     borderRadius: 30,
   },

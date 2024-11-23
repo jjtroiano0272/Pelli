@@ -8,27 +8,23 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Link } from "expo-router";
 import ScreenWrapper from "@/components/ScreenWrapper";
-import { useTheme, List, MD3LightTheme, IconButton } from "react-native-paper";
+import { List, useTheme, withTheme } from "react-native-paper";
 import { hp, wp } from "@/helpers/common";
-import { theme } from "@/constants/theme";
 import Avatar from "@/components/Avatar";
 import Header from "@/components/Header";
 import Icon from "@/assets/icons";
-import {
-  fetchBlockedUsers,
-  fetchPosts,
-  unblockUser,
-} from "@/services/postService";
+import { fetchBlockedUsers, unblockUser } from "@/services/postService";
 import { translate } from "@/i18n";
 import { useAuth } from "@/context/AuthContext";
+import { myTheme } from "@/constants/theme";
 
 var limit = 0;
 
 const editBlockedUsers = () => {
+  const theme = useTheme();
   const { user: currentUser, setAuth } = useAuth();
-  const paperTheme = useTheme();
+
   const [hasMore, setHasMore] = useState(true);
 
   // TODO Types
@@ -108,8 +104,8 @@ const editBlockedUsers = () => {
           <View style={{ paddingVertical: 50 }}>
             <Text
               style={{
-                color: paperTheme.colors.onBackground,
-                fontSize: theme.radius.xl,
+                color: theme.colors.onBackground,
+                fontSize: myTheme.radius.xl,
               }}
             >
               {translate("editBlockedUsersScreen:noUsers")}
@@ -124,7 +120,7 @@ const editBlockedUsers = () => {
           <View
             style={{
               flex: 1,
-              backgroundColor: paperTheme.colors.background,
+              backgroundColor: theme.colors.background,
               paddingHorizontal: wp(4),
             }}
           >
@@ -137,16 +133,16 @@ const editBlockedUsers = () => {
               {/* <TouchableOpacity
                 style={[
                   {
-                    backgroundColor: paperTheme.colors.error,
+                    backgroundColor: theme.colors.error,
                     position: 'absolute',
                     right: 0,
                     padding: 5,
-                    borderRadius: theme.radius.sm,
+                    borderRadius: myTheme.radius.sm,
                   },
                 ]}
                 // onPress={handleLogout}
               >
-                <Icon name={'logout'} color={paperTheme.colors.onError} />
+                <Icon name={'logout'} color={theme.colors.onError} />
               </TouchableOpacity> */}
             </View>
           </View>
@@ -162,7 +158,7 @@ const editBlockedUsers = () => {
                 size={hp(4.5)}
                 // uri={item?.user?.image}
                 uri={item?.image}
-                rounded={theme.radius.md}
+                rounded={myTheme.radius.md}
               />
             )}
             right={(props) => (
@@ -171,7 +167,7 @@ const editBlockedUsers = () => {
                   name="moreHorizontal"
                   size={hp(3.4)}
                   strokeWidth={3}
-                  color={paperTheme.colors.onBackground}
+                  color={theme.colors.onBackground}
                 />
               </TouchableOpacity>
             )}
@@ -199,12 +195,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: hp(3.2),
     // @ts-ignore
-    fontWeight: theme.fonts.bold,
+    // fontWeight: theme.fontWeight.bold,
   },
   avatarImage: {
     height: hp(4.3),
     width: hp(4.3),
-    borderRadius: theme.radius.sm,
+    // borderRadius: theme.radius.sm,
     borderCurve: "continuous",
     // borderColor: theme.colors.gray,
     borderWidth: 3,
@@ -223,26 +219,6 @@ const styles = StyleSheet.create({
   noPosts: {
     fontSize: hp(2),
     textAlign: "center",
-  },
-  pill: {
-    position: "absolute",
-    right: -10,
-    top: -4,
-    height: hp(2.2),
-    width: hp(2.2),
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-  },
-  pillText: {
-    fontSize: hp(1.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
-  },
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
   },
   maskedView: {
     position: "absolute",

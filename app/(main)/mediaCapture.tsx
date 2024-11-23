@@ -21,8 +21,11 @@ import {
 } from "react-native";
 import {
   IconButton,
-  useTheme as usePaperTheme,
+  useTheme as usetheme,
   Button as PaperButton,
+  MD3Theme,
+  withTheme,
+  useTheme,
 } from "react-native-paper";
 import Button from "@/components/Button";
 import { SymbolView } from "expo-symbols";
@@ -38,11 +41,13 @@ import ProgressCircle from "@/components/ProgressCircle";
 import { translate } from "@/i18n";
 // import ProgressCircle from 'rn-animated-progress-circle';
 import * as Haptics from "expo-haptics";
+import { myTheme } from "@/constants/theme";
 
 let videoRecordTimeLimit = 10;
 
 const MediaCapture = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
+
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraViewRef>(null);
@@ -161,8 +166,8 @@ const MediaCapture = () => {
           <IconButton
             icon={"camera-flip-outline"}
             mode="outlined"
-            containerColor={paperTheme.colors.background}
-            iconColor={paperTheme.colors.onBackground}
+            containerColor={theme.colors.background}
+            iconColor={theme.colors.onBackground}
             style={{ opacity: 0.7 }}
             onPress={toggleCameraFacing}
           />

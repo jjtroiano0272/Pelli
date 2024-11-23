@@ -1,17 +1,11 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import React, { useState } from "react";
-import { Link } from "expo-router";
-import { theme } from "@/constants/theme";
+import { StyleSheet, TextInput, View } from "react-native";
+import React from "react";
 import { hp } from "@/helpers/common";
-import {
-  useTheme,
-  TextInput as PaperInput,
-  Chip as PaperChip,
-} from "react-native-paper";
-import { Chip as MaterialChip } from "@react-native-material/core";
+import { Chip, useTheme, withTheme } from "react-native-paper";
+import { myTheme } from "@/constants/theme";
 
-const Input = (props: any, withChip = false) => {
-  const paperTheme = useTheme();
+const Input = (props: any, chipContent?: Client) => {
+  const theme = useTheme();
   // const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -19,15 +13,19 @@ const Input = (props: any, withChip = false) => {
       style={[
         styles.container,
         {
-          borderColor: paperTheme.colors.outline,
+          borderColor: theme.colors.outline,
+          borderRadius: myTheme.radius.xxl,
         },
         props.containerStyle && props.containerStyle,
       ]}
     >
       {props.icon && props.icon}
       <TextInput
-        style={{ flex: 1, color: paperTheme.colors.onBackground }}
-        placeholderTextColor={paperTheme.colors.secondary}
+        style={{
+          flex: 1,
+          color: theme.colors.onBackground,
+        }}
+        placeholderTextColor={theme.colors.secondary}
         ref={props.inputRef && props.inputRef}
         autoCapitalize="sentences"
         hitSlop={{
@@ -40,6 +38,24 @@ const Input = (props: any, withChip = false) => {
 
         {...props}
       />
+      {chipContent && (
+        <View
+          style={
+            {
+              // position: "absolute",
+            }
+          }
+        >
+          <Chip
+            onPress={() => console.log(`action to clear input`)}
+            mode="flat"
+            icon={"close"}
+          >
+            {chipContent?.first_name}
+          </Chip>
+        </View>
+      )}
+      {props.right && props.right}
     </View>
   );
 };
@@ -53,7 +69,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.4,
-    borderRadius: theme.radius.xxl,
     borderCurve: "continuous",
     paddingHorizontal: 18,
     gap: 12,

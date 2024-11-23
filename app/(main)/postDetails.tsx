@@ -18,7 +18,7 @@ import {
   removeComment,
   removePost,
 } from "@/services/postService";
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import { hp, wp } from "@/helpers/common";
 import PostCard from "@/components/PostCard";
 import { useAuth } from "@/context/AuthContext";
@@ -29,11 +29,16 @@ import CommentItem from "@/components/CommentItem";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/services/userService";
 import { createNotification } from "@/services/notificationService";
-import { useTheme as usePaperTheme, IconButton } from "react-native-paper";
+import {
+  useTheme as usetheme,
+  IconButton,
+  withTheme,
+  useTheme,
+} from "react-native-paper";
 import { translate } from "@/i18n";
 
 const PostDetails = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const { postId, commentId } = useLocalSearchParams();
   const { user } = useAuth();
   const router = useRouter();
@@ -166,10 +171,7 @@ const PostDetails = () => {
   if (startLoading) {
     return (
       <View
-        style={[
-          styles.center,
-          { backgroundColor: paperTheme.colors.background },
-        ]}
+        style={[styles.center, { backgroundColor: theme.colors.background }]}
       >
         <Loading />
       </View>
@@ -185,7 +187,8 @@ const PostDetails = () => {
           style={[
             styles.notFound,
             {
-              color: paperTheme.colors.onBackground,
+              color: theme.colors.onBackground,
+              fontWeight: "500",
             },
           ]}
         >
@@ -197,10 +200,7 @@ const PostDetails = () => {
 
   return (
     <KeyboardAvoidingView
-      style={[
-        styles.container,
-        { backgroundColor: paperTheme.colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior="position" // Works best for both. 'Padding' ends up with keyboard too close.
       keyboardVerticalOffset={-hp(17)}
     >
@@ -223,11 +223,11 @@ const PostDetails = () => {
           <Input
             inputRef={inputRef}
             placeholder={translate("postDetailsSreen:commentInputPlaceholder")}
-            // placeholderTextColor={paperTheme.colors.onBackground}
+            // placeholderTextColor={theme.colors.onBackground}
             containerStyle={{
               flex: 1,
               height: hp(6.2),
-              borderRadius: theme.radius.xl,
+              borderRadius: myTheme.radius.xl,
             }}
             onChangeText={(value: string) => {
               commentRef.current = value;
@@ -243,9 +243,10 @@ const PostDetails = () => {
               style={[
                 styles.sendIcon,
                 {
+                  borderRadius: myTheme.radius.lg,
                   borderColor: inputValue
-                    ? paperTheme.colors.outline
-                    : paperTheme.colors.surfaceDisabled,
+                    ? theme.colors.outline
+                    : theme.colors.surfaceDisabled,
                 },
               ]}
               onPress={onNewComment}
@@ -256,8 +257,8 @@ const PostDetails = () => {
                 name="send"
                 color={
                   inputValue
-                    ? paperTheme.colors.primary
-                    : paperTheme.colors.surfaceDisabled
+                    ? theme.colors.primary
+                    : theme.colors.surfaceDisabled
                 }
               />
             </TouchableOpacity>
@@ -282,7 +283,7 @@ const PostDetails = () => {
           {post?.comments?.length == 0 && (
             <Text
               style={{
-                color: paperTheme.colors.onBackground,
+                color: theme.colors.onBackground,
                 marginLeft: 5,
               }}
             >
@@ -317,7 +318,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.8,
-    borderRadius: theme.radius.lg,
     borderCurve: "continuous",
     height: hp(5.8),
     width: hp(5.8),
@@ -329,8 +329,6 @@ const styles = StyleSheet.create({
   },
   notFound: {
     fontSize: hp(2.5),
-    // @ts-ignore
-    fontWeight: theme.fonts.medium,
   },
   loading: {
     height: hp(5.8),

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import { hp, wp } from "@/helpers/common";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
@@ -23,7 +23,12 @@ import * as ImagePicker from "expo-image-picker";
 import { getSupabaseFileUrl } from "@/services/imageService";
 import { Video } from "expo-av";
 import { createOrUpdatePost } from "@/services/postService";
-import { useTheme as usePaperTheme } from "react-native-paper";
+import {
+  MD3Theme,
+  useTheme,
+  useTheme as usetheme,
+  withTheme,
+} from "react-native-paper";
 import Input from "@/components/Input";
 import Picker from "@/components/Picker";
 import { translate } from "@/i18n";
@@ -31,9 +36,11 @@ import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import Slider from "@/components/Slider";
 import { faker } from "@faker-js/faker/.";
+import SearchableTextInput from "@/components/SearchableTextInput";
+import { createOrUpdateClient } from "@/services/clientService";
 
 const NewPost = ({ route }: { route: any }) => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const post = useLocalSearchParams();
   const { user } = useAuth();
   const bodyRef = useRef("");
@@ -41,6 +48,8 @@ const NewPost = ({ route }: { route: any }) => {
   const clientNameRef = useRef("");
   const formulaDescriptionRef = useRef("");
   const formulaTypeRef = useRef("");
+  const [selectedClient, setSelectedClient] = useState<Client | null>();
+  const [isNewClient, setIsNewClient] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<
@@ -86,11 +95,6 @@ const NewPost = ({ route }: { route: any }) => {
       // console.log(`falsy`);
     }
   }, [post?.cameraCaptureUri, post?.uri]);
-
-  useEffect(() => {
-    route?.params?.cameraCaptureUri &&
-      Alert.alert("Args passed in!", route?.params?.cameraCaptureUri);
-  }, [route?.params?.cameraCaptureUri]);
 
   // TODO Create type
   // Comes from ImagePicker
@@ -176,10 +180,28 @@ const NewPost = ({ route }: { route: any }) => {
     console.log(`body: ${JSON.stringify(bodyRef.current, null, 2)}`);
     console.log(`file: ${JSON.stringify(file, null, 2)}`);
 
+    // Create client if they don't yet exist in the db
+    let clientRes;
+    let newClientId;
+    if (isNewClient) {
+      setLoading(true);
+      clientRes = await createOrUpdateClient({
+        first_name: selectedClient?.first_name,
+        last_name: selectedClient?.last_name,
+      });
+      setLoading(false);
+      console.log(`clientRes: ${JSON.stringify(clientRes, null, 2)}`);
+
+      if (clientRes.success) {
+        newClientId = clientRes?.data?.id;
+      }
+    }
+
     let data = {
       file,
       body: bodyRef?.current,
-      client_name: clientNameRef?.current,
+      // client_name: clientNameRef?.current,
+      clientId: !isNewClient ? selectedClient?.id : newClientId,
       formula_info: {
         formula_type: formulaTypeRef?.current,
         formula_description: formulaDescriptionRef?.current,
@@ -242,20 +264,11 @@ const NewPost = ({ route }: { route: any }) => {
 
   useEffect(() => {
     console.log(`file state var: ${JSON.stringify(file, null, 2)}`);
-  }, [file]);
+    console.log(
+      `selectedClient (parent cpt): ${JSON.stringify(selectedClient, null, 2)}`
+    );
+  }, [file, selectedClient]);
 
-  let dummyData = [
-    {
-      title: faker.animal.bear(),
-      image: require("@/assets/images/cat-contained.png"),
-      description: faker.lorem.words({ min: 6, max: 10 }),
-    },
-    {
-      title: faker.animal.bear(),
-      image: require("@/assets/images/cat-outline.png"),
-      description: faker.lorem.words({ min: 6, max: 10 }),
-    },
-  ];
   const transformData = (data) => {
     return data.map((item) => ({
       title: item.assetId,
@@ -278,6 +291,7 @@ const NewPost = ({ route }: { route: any }) => {
       so now I'll just need to filter the array out where image here^^ passed in doesn't match what's in the array (delete from array)
     */
   };
+
   return (
     <ScreenWrapper>
       <View style={styles.container}>
@@ -291,14 +305,15 @@ const NewPost = ({ route }: { route: any }) => {
             <Avatar
               uri={user?.image}
               size={hp(6.5)}
-              rounded={theme.radius.xl}
+              rounded={myTheme.radius.xl}
             />
             <View style={{ gap: 2 }}>
               <Text
                 style={[
                   styles.username,
                   {
-                    color: paperTheme.colors.onBackground,
+                    color: theme.colors.onBackground,
+                    fontWeight: "600",
                   },
                 ]}
               >
@@ -308,7 +323,8 @@ const NewPost = ({ route }: { route: any }) => {
                 style={[
                   styles.publicText,
                   {
-                    color: paperTheme.colors.secondary,
+                    color: theme.colors.secondary,
+                    fontWeight: "500",
                   },
                 ]}
               >
@@ -317,11 +333,18 @@ const NewPost = ({ route }: { route: any }) => {
             </View>
           </View>
 
-          <Input
+          {/* <Input
             autoCapitalize="words"
             icon={<Icon name="user" size={26} strokeWidth={1.6} />}
             placeholder={translate("common:clientName")}
             onChangeText={(value: string) => (clientNameRef.current = value)}
+          /> */}
+          {/* Client input */}
+          <SearchableTextInput
+            selectedClient={selectedClient}
+            setSelectedClient={setSelectedClient}
+            isNewClient={isNewClient}
+            setIsNewClient={setIsNewClient}
           />
 
           {/* formula type */}
@@ -356,7 +379,14 @@ const NewPost = ({ route }: { route: any }) => {
             |----------------------------------------------------------------------------------------------------
           */}
           {file && file.length === 1 && (
-            <View style={styles.file}>
+            <View
+              style={[
+                styles.file,
+                {
+                  borderRadius: myTheme.radius.xl,
+                },
+              ]}
+            >
               {getFileType(file[0]) == "video" ? (
                 <Video
                   style={{ flex: 1 }}
@@ -398,7 +428,8 @@ const NewPost = ({ route }: { route: any }) => {
             style={[
               styles.media,
               {
-                borderColor: paperTheme.colors.outline,
+                borderColor: theme.colors.outline,
+                borderRadius: myTheme.radius.xl,
               },
             ]}
           >
@@ -406,7 +437,8 @@ const NewPost = ({ route }: { route: any }) => {
               style={[
                 styles.addImageText,
                 {
-                  color: paperTheme.colors.onBackground,
+                  color: theme.colors.onBackground,
+                  fontWeight: "500",
                 },
               ]}
             >
@@ -419,14 +451,14 @@ const NewPost = ({ route }: { route: any }) => {
                 <Icon
                   name="camera"
                   size={30}
-                  color={paperTheme.colors.onBackground}
+                  color={theme.colors.onBackground}
                 />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => onPick(true)}>
                 <Icon
                   name="image"
                   size={30}
-                  color={paperTheme.colors.onBackground}
+                  color={theme.colors.onBackground}
                 />
               </TouchableOpacity>
               {/* TODO Generalize component for readability...later */}
@@ -435,7 +467,7 @@ const NewPost = ({ route }: { route: any }) => {
                 <Icon
                   name="video"
                   size={33}
-                  color={paperTheme.colors.onBackground}
+                  color={theme.colors.onBackground}
                 />
               </TouchableOpacity>
             </View>
@@ -472,14 +504,6 @@ const styles = StyleSheet.create({
   },
   textHeader: { fontSize: 42 },
 
-  title: {
-    // marginBottom: 10,
-    fontSize: hp(2.5),
-    // @ts-ignore
-    fontWeight: theme.fonts.semibold,
-    // color: theme.colors.text,
-    textAlign: "center",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -487,21 +511,9 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: hp(2.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.semibold,
-  },
-  avatar: {
-    height: hp(6.5),
-    width: hp(6.5),
-    borderRadius: theme.radius.xl,
-    borderCurve: "continuous",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.1)",
   },
   publicText: {
     fontSize: hp(1.7),
-    // @ts-ignore
-    fontWeight: theme.fonts.medium,
   },
   textEditor: {
     // marginTop: 10
@@ -513,7 +525,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     padding: 12,
     paddingHorizontal: 18,
-    borderRadius: theme.radius.xl,
     borderCurve: "continuous",
   },
   mediaIcons: {
@@ -523,18 +534,10 @@ const styles = StyleSheet.create({
   },
   addImageText: {
     fontSize: hp(1.9),
-    // @ts-ignore
-    fontWeight: theme.fonts.medium,
-  },
-  imageIcon: {
-    // backgroundColor: theme.colors.gray,
-    borderRadius: theme.radius.md,
-    // padding: 6,
   },
   file: {
     height: hp(30),
     width: "100%",
-    borderRadius: theme.radius.xl,
     overflow: "hidden",
     borderCurve: "continuous",
   },

@@ -3,11 +3,17 @@ import { FlatList, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Link, useRouter } from "expo-router";
 import ScreenWrapper from "@/components/ScreenWrapper";
-import { List, useTheme as usePaperTheme } from "react-native-paper";
+import {
+  List,
+  MD3Theme,
+  useTheme,
+  useTheme as usetheme,
+  withTheme,
+} from "react-native-paper";
 import { wp, hp } from "@/helpers/common";
 import Header from "@/components/Header";
 import { useAuth } from "@/context/AuthContext";
-import { theme } from "@/constants/theme";
+import { myTheme } from "@/constants/theme";
 import { fetchUsersLikedPosts } from "@/services/postService";
 import PostCard from "@/components/PostCard";
 import Avatar from "@/components/Avatar";
@@ -19,14 +25,14 @@ import { translate } from "@/i18n";
 var limit = 0;
 
 const likedPosts = () => {
-  const paperTheme = usePaperTheme();
+  const theme = useTheme();
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
   const [likedPosts, setLikedPosts] = useState();
   const router = useRouter();
 
   const textStyle = {
-    color: paperTheme.colors.onBackground,
+    color: theme.colors.onBackground,
     fontSize: hp(1.75),
   };
 
@@ -34,8 +40,8 @@ const likedPosts = () => {
     div: textStyle,
     p: textStyle,
     ol: textStyle,
-    h1: { color: paperTheme.colors.onBackground },
-    h4: { color: paperTheme.colors.onBackground },
+    h1: { color: theme.colors.onBackground },
+    h4: { color: theme.colors.onBackground },
   };
 
   const getLikedPosts = async () => {
@@ -70,7 +76,7 @@ const likedPosts = () => {
           <View
             style={{
               flex: 1,
-              backgroundColor: paperTheme.colors.background,
+              backgroundColor: theme.colors.background,
               paddingHorizontal: wp(4),
             }}
           >
@@ -134,7 +140,7 @@ const likedPosts = () => {
                 style={[
                   styles.noPosts,
                   {
-                    color: paperTheme.colors.onBackground,
+                    color: theme.colors.onBackground,
                   },
                 ]}
               >
@@ -164,13 +170,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: hp(3.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
+    // fontWeight: theme.fontWeight.bold,
   },
   avatarImage: {
     height: hp(4.3),
     width: hp(4.3),
-    borderRadius: theme.radius.sm,
+    // borderRadius: theme.radius.sm,
     borderCurve: "continuous",
     // borderColor: theme.colors.gray,
     borderWidth: 3,
@@ -202,8 +207,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: hp(1.2),
-    // @ts-ignore
-    fontWeight: theme.fonts.bold,
+    // fontWeight: theme.fontWeight.bold,
   },
   titleContainer: {
     flexDirection: "row",

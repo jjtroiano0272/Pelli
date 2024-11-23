@@ -115,13 +115,11 @@ export const fetchPosts = async (
   userId?: string
 ) => {
   try {
-    {
-      /* /**
+    /* /* /**
       |----------------------------------------------------------------------------------------------------
       | =>        			If you're looking for posts from a specific user
       |----------------------------------------------------------------------------------------------------
-    */
-    }
+    } */
     if (userId) {
       const { data, error } = await supabase
         .from("posts")
@@ -142,15 +140,24 @@ export const fetchPosts = async (
 
       return { success: true, data: data };
     } else {
+      /*  {
+       /* /**
+       |----------------------------------------------------------------------------------------------------
+       | =>        			Grab ALL posts regardless
+       |----------------------------------------------------------------------------------------------------
+     */
       // TODO: Logic) This could all be rewritten to be one SQL query and be a lot neater, but I'm not there yet
       const { data, error } = await supabase
         .from("posts")
         // this grabs the nsfw setting for EVERY user. Needs just to be only for the current user
         .select(
-          `*,
+          `
+          *,
           user: users (id, name, image, blocked_users, filter_objectionable_content),
           postLikes (*),
-          comments (count)`
+          comments (count),
+          client: clients (id, first_name, last_name, profile_image)
+          `
         )
         .order("created_at", { ascending: false })
         .limit(limit);

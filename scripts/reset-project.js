@@ -16,7 +16,7 @@ const newAppDirPath = path.join(root, 'app');
 
 const indexContent = `import { Text, View } from "react-native";
 
-export default function Index() {
+export default withTheme(function); Index() {
   return (
     <View
       style={{
@@ -33,7 +33,7 @@ export default function Index() {
 
 const layoutContent = `import { Stack } from "expo-router";
 
-export default function RootLayout() {
+export default withTheme(function); RootLayout() {
   return (
     <Stack>
       <Stack.Screen name="index" />

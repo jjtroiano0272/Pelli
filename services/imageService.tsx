@@ -1,15 +1,15 @@
-import * as FileSystem from 'expo-file-system';
-import { decode } from 'base64-arraybuffer';
-import { supabase } from '@/lib/supabase';
-import { supabaseUrl } from '@/constants';
-import { ImagePickerAsset } from 'expo-image-picker';
+import * as FileSystem from "expo-file-system";
+import { decode } from "base64-arraybuffer";
+import { supabase } from "@/lib/supabase";
+import { supabaseUrl } from "@/constants";
+import { ImagePickerAsset } from "expo-image-picker";
 
 export const getUserImageSrc = (imagePath: string) => {
   if (imagePath) {
     return getSupabaseFileUrl(imagePath);
   } else {
     // defaultUser
-    return require('../assets/images/default-user.png');
+    return require("../assets/images/default-user.png");
   }
 };
 
@@ -18,7 +18,7 @@ export const getSupabaseFileUrl = (filePath: string) => {
 
   // console.log(`filePath: ${JSON.stringify(filePath, null, 2)}`);
   return {
-    uri: filePath.includes('dicebear')
+    uri: filePath.includes("dicebear")
       ? filePath
       : `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}`,
   };
@@ -34,11 +34,11 @@ export const downloadFile = async (url: string) => {
 };
 
 export const getLocalFilePath = (filePath: string) => {
-  let fileName = filePath.split('/').pop();
+  let fileName = filePath.split("/").pop();
   return `${FileSystem.documentDirectory}${fileName}`;
 };
 
-// export const getLocalFilePath = () => {};
+// export const getLocalFilePath = ({ theme }) => {};
 
 export const uploadFile = async (
   folderName: string,
@@ -60,22 +60,22 @@ export const uploadFile = async (
 
     let fileData = decode(fileBase64);
     let { data, error } = await supabase.storage
-      .from('uploads')
+      .from("uploads")
       .upload(fileName, fileData, {
-        cacheControl: '3600',
+        cacheControl: "3600",
         upsert: false,
-        contentType: isImage ? 'image/*' : 'video/*',
+        contentType: isImage ? "image/*" : "video/*",
       });
 
     if (error) {
       console.error(`File upload error => ${error}`);
-      return { success: false, msg: 'Could not upload media' };
+      return { success: false, msg: "Could not upload media" };
     }
 
     return { success: true, data: data?.path };
   } catch (error) {
     console.error(`File upload error => ${error}`);
-    return { success: false, msg: 'Could not upload media' };
+    return { success: false, msg: "Could not upload media" };
   }
 };
 
@@ -85,7 +85,7 @@ export const uploadMultipleFiles = async (
   isImage = true
 ) => {
   try {
-    const uploadPromises = imageArr.map(async element => {
+    const uploadPromises = imageArr.map(async (element) => {
       let fileName = getFilePath(folderName, isImage);
       let fileBase64 = await FileSystem.readAsStringAsync(element.uri, {
         encoding: FileSystem.EncodingType.Base64,
@@ -93,11 +93,11 @@ export const uploadMultipleFiles = async (
 
       let fileData = decode(fileBase64);
       let { data, error } = await supabase.storage
-        .from('uploads')
+        .from("uploads")
         .upload(fileName, fileData, {
-          cacheControl: '3600',
+          cacheControl: "3600",
           upsert: true,
-          contentType: 'image/*',
+          contentType: "image/*",
           // potential bug creator
         });
 
@@ -105,7 +105,7 @@ export const uploadMultipleFiles = async (
 
       if (error) {
         console.error(`File upload error => ${JSON.stringify(error, null, 2)}`);
-        return { success: false, msg: 'Could not upload media' };
+        return { success: false, msg: "Could not upload media" };
       }
 
       return data;
@@ -118,17 +118,17 @@ export const uploadMultipleFiles = async (
     const uploadResults = await Promise.all(uploadPromises);
     console.log(`uploadResults: ${JSON.stringify(uploadResults, null, 2)}`);
 
-    const pathsInResult = uploadResults.map(item => item?.path);
+    const pathsInResult = uploadResults.map((item) => item?.path);
     console.log(`pathsInResult: ${JSON.stringify(pathsInResult, null, 2)}`);
 
     // instead, return all paths...let's say an array of paths
     return { success: true, data: pathsInResult };
   } catch (error) {
     console.error(`File upload error => ${error}`);
-    return { success: false, msg: 'Could not upload media' };
+    return { success: false, msg: "Could not upload media" };
   }
 };
 
 export const getFilePath = (folderName: string, isImage: boolean) => {
-  return `/${folderName}/${new Date().getTime()}${isImage ? '.png' : '.mp4'}`;
+  return `/${folderName}/${new Date().getTime()}${isImage ? ".png" : ".mp4"}`;
 };

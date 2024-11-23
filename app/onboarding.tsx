@@ -14,15 +14,15 @@ import LottieView from "lottie-react-native";
 import { hp, wp } from "@/helpers/common";
 import { translate } from "@/i18n";
 import { getItem, setItem } from "@/utils/asyncStorage";
-import { theme } from "@/constants/theme";
-import { useTheme as usePaperTheme } from "react-native-paper";
+import { myTheme } from "@/constants/theme";
+import { useTheme, withTheme } from "react-native-paper";
 
 const { height, width } = Dimensions.get("window");
 
 const OnboardingScreen = () => {
+  const theme = useTheme();
   const navigation = useNavigation();
   const router = useRouter();
-  const paperTheme = usePaperTheme();
 
   const handleDone = async () => {
     await setItem("onboarded", "1");
@@ -50,7 +50,8 @@ const OnboardingScreen = () => {
       <Onboarding
         containerStyles={{ paddingHorizontal: 25 }}
         bottomBarHighlight={true}
-        titleStyles={{ fontSize: paperTheme.fonts.headlineLarge.fontSize }}
+        // TODO titleStyles={{ fontSize: theme.fonts.headlineLarge }}
+        titleStyles={{ fontSize: 50 }}
         subTitleStyles={{ marginVertical: 20 }}
         onDone={handleDone}
         onSkip={handleDone}
@@ -118,7 +119,6 @@ const styles = StyleSheet.create({
     // justifyContent: "center",
     // paddingHorizontal: 15,
   },
-  textHeader: { fontSize: 42 },
   lottie: {
     width: width * 0.9,
     height: width,
