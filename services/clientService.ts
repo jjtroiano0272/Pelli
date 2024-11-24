@@ -69,6 +69,8 @@ export const createOrUpdateClient = async (client: Client) => {
       console.error(`createOrUpdateClient error: `, error);
     }
 
+    console.log(`createOrUpdateClient data: ${JSON.stringify(data, null, 2)}`);
+
     return { success: true, data: data };
   } catch (error) {
     console.error(`createOrUpdateClient error: `, error);
