@@ -43,6 +43,8 @@ const es = {
     grantPermission: "Conceder permiso", // *
     done: "¡Listo!",
     deletedUser: "[eliminado]",
+    client: "Cliente",
+    recentPosts: "Posteos recientes",
   },
   errors: {
     signOut: "Había un error de cerrar la sesión",
@@ -86,6 +88,7 @@ const es = {
     formulaDescriptionPlaceholder: "Descripción (e.g. 20g Bronze + 40 AU)",
     addToPost: "Añadir al posteo",
     title: "Crea un posteo",
+    editingTitle: "Editar ty posteo",
     postBodyPlaceholder:
       "¿Cuáles son lost detalles del cliente que deseas compartir?", // *
   },
@@ -121,6 +124,9 @@ const es = {
     title: "Envía un reporte",
   },
   searchableTextInputScreen: { addClient: "Añadir nueva cliente" },
+  likedPostsScreen: {
+    title: "Posteos me gustaron", // *
+  },
 
   errorScreen: {},
   emptyStateComponent: {

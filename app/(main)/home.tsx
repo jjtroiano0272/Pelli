@@ -26,6 +26,7 @@ import Animated from "react-native-reanimated";
 // import FlipCard from "@/components/FlipCard";
 import { useAnimatedShake } from "@/hooks/useAnimatedShake";
 import * as Haptics from "expo-haptics";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 var limit = 0;
 
@@ -33,7 +34,7 @@ const Home = () => {
   const theme = useTheme();
   const { user, setAuth } = useAuth();
   const router = useRouter();
-  const [posts, setPosts] = useState<any>([]);
+  const [posts, setPosts] = useState<[{ [key: string]: any }] | []>([]);
   const [hasMore, setHasMore] = useState(true);
   const [notificationCount, setNotificationCount] = useState(0);
   const [showCats, setShowCats] = useState(false);
@@ -57,7 +58,9 @@ const Home = () => {
     return () => clearTimeout(timer1);
   };
 
-  const handlePostEvent = async (payload: any) => {
+  const handlePostEvent = async (
+    payload: RealtimePostgresChangesPayload<any>
+  ) => {
     console.log(`payload: ${JSON.stringify(payload, null, 2)}`);
 
     if (payload.eventType == "INSERT" && payload?.new?.id) {
@@ -95,7 +98,9 @@ const Home = () => {
     }
   };
 
-  const handleNewNotification = async (payload: any) => {
+  const handleNewNotification = async (
+    payload: RealtimePostgresChangesPayload<any>
+  ) => {
     console.log(`notification payload: ${JSON.stringify(payload, null, 2)}`);
 
     if (payload.eventType == "INSERT" && payload?.new?.id) {
@@ -103,7 +108,9 @@ const Home = () => {
     }
   };
 
-  const handleUserEvent = async (payload) => {
+  const handleUserEvent = async (
+    payload: RealtimePostgresChangesPayload<any>
+  ) => {
     console.log(`user event payload: ${JSON.stringify(payload, null, 2)}`);
 
     if (
@@ -121,6 +128,17 @@ const Home = () => {
     }
 
     // payload.new.blocked_users is null here if it's empty
+  };
+
+  const handleClientEvent = async (
+    payload: RealtimePostgresChangesPayload<any>
+  ) => {
+    if (payload.eventType == "INSERT" || payload.eventType == "UPDATE") {
+      console.log(
+        "\x1b[34m" + `Client event payload: ${JSON.stringify(payload, null, 2)}`
+      );
+      // setPosts(filteredPosts);
+    }
   };
 
   useEffect(() => {
@@ -167,10 +185,25 @@ const Home = () => {
       )
       .subscribe();
 
+    let clientChannel = supabase
+      .channel("clients")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "clients",
+          // filter: `id=eq.${user?.id}`,
+        },
+        handleClientEvent
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(postChannel);
       supabase.removeChannel(notificationChannel);
       supabase.removeChannel(userChannel);
+      supabase.removeChannel(clientChannel);
     };
   }, []);
 
@@ -213,12 +246,6 @@ const Home = () => {
       }
     }
   };
-
-  useEffect(() => {
-    console.log(
-      `posts (first 3): ${JSON.stringify(posts.slice(0, 2), null, 2)}`
-    );
-  }, [posts]);
 
   return (
     <ScreenWrapper>

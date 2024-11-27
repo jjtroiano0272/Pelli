@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 
-export const fetchClientData = async (text: string) => {
+export const searchForClient = async (text: string) => {
   try {
     const firstName = text.split(" ")[0];
     const lastName = text.split(" ")[0];
@@ -75,5 +75,30 @@ export const createOrUpdateClient = async (client: Client) => {
   } catch (error) {
     console.error(`createOrUpdateClient error: `, error);
     return { success: false, msg: "Could not create the client" };
+  }
+};
+
+export const fetchClientDetails = async (id: number | string) => {
+  try {
+    const { data, error } = await supabase
+      .from("clients")
+      .select(
+        `
+        *
+        `
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      error.code != "22P02" &&
+        console.error(`fetchClientDetails error: `, error);
+      return { success: false, msg: "Could not fetch client details" };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error(`fetchPost error: `, error);
+    return { success: false, msg: "Could not fetch client details" };
   }
 };

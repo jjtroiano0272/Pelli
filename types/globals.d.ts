@@ -25,10 +25,10 @@ type PostData = {
   userId: any;
 };
 
-type Client = {
-  id: number;
-  created_at: string; // TODO Technically a date-time...looks like "2024-11-19T22:49:32.699029+00:00"
+export type Client = {
+  id?: number;
+  created_at?: string; // TODO Technically a date-time...looks like "2024-11-19T22:49:32.699029+00:00"
   first_name: string;
   last_name: string;
-  profile_image: string;
+  profile_image?: string;
 };

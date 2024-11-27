@@ -14,7 +14,7 @@ import { getUserImageSrc } from "@/services/imageService";
 import { useTheme, withTheme } from "react-native-paper";
 
 interface AvatarProps {
-  uri: string;
+  uri: string | string[];
   size?: number;
   rounded?: 14;
   style?: StyleProp<ImageStyle>;
@@ -28,10 +28,31 @@ const Avatar = ({
   const theme = useTheme();
 
   useEffect(() => {
-    console.log(
-      `getUserImageSrc(uri): ${JSON.stringify(getUserImageSrc(uri), null, 2)}`
-    );
+    console.log(`uri: ${JSON.stringify(uri, null, 2)}`);
+    console
+      .log
+      // `getUserImageSrc(uri): ${JSON.stringify(getUserImageSrc(uri), null, 2)}`
+      ();
   }, []);
+
+  if (Array.isArray(uri)) {
+    return (
+      <Image
+        source={getUserImageSrc(uri?.[0])}
+        transition={100}
+        style={[
+          styles.avatar,
+          {
+            height: size,
+            width: size,
+            borderRadius: rounded,
+            borderColor: theme.colors.outline,
+          },
+          style,
+        ]}
+      />
+    );
+  }
 
   return (
     <Image
@@ -54,8 +75,6 @@ const Avatar = ({
 export default Avatar;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  textHeader: { fontSize: 42 },
   avatar: {
     borderCurve: "continuous",
     borderWidth: 1,

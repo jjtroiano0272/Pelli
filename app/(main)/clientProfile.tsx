@@ -1,107 +1,88 @@
-{
-  /* /**
-  |----------------------------------------------------------------------------------------------------
-  | =>        			This is the one for other users' profiles
-  |----------------------------------------------------------------------------------------------------
-*/
-}
-import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
 import { hp, wp } from "@/helpers/common";
 import Icon from "@/assets/icons";
 import { myTheme } from "@/constants/theme";
-import { supabase } from "@/lib/supabase";
 import Avatar from "@/components/Avatar";
-import { fetchPosts, fetchUserDetails } from "@/services/postService";
+import {
+  fetchPosts,
+  fetchPostsAboutClient,
+  fetchUserDetails,
+} from "@/services/postService";
 import PostCard from "@/components/PostCard";
 import Loading from "@/components/Loading";
-import {
-  useTheme as usetheme,
-  Button as PaperButton,
-  IconButton,
-  Switch,
-  withTheme,
-  useTheme,
-} from "react-native-paper";
+import { useTheme } from "react-native-paper";
 import { translate } from "@/i18n";
-import * as Haptics from "expo-haptics";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getUserData, updateUser } from "@/services/userService";
+import { fetchClientDetails } from "@/services/clientService";
 
 var limit = 0;
 
-const UserProfile = () => {
-  const theme = useTheme();
-  const { targetUserId } = useLocalSearchParams();
+interface Client {
+  id: number | string;
+  created_at: string;
+  first_name: string;
+  last_name: string;
+  profile_image: string | string[];
+}
 
+const ClientProfile = () => {
+  const theme = useTheme();
   const { user } = useAuth();
   const router = useRouter();
-  const [posts, setPosts] = useState<any>([]);
-  const [startLoading, setStartLoading] = useState(true);
+  const { clientId } = useLocalSearchParams();
+  const [postsAboutClient, setPostsAboutClient] = useState<any>([]);
+  const [clientData, setClientData] = useState({});
+  const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [filterObjectionableContent, setFilterObjectionableContent] =
-    useState(false);
 
   const getPosts = async () => {
     if (!hasMore) return null;
     limit = limit + 10;
 
-    let res = await fetchPosts(
-      limit,
-      user.id,
-      // TODO Gets changed to the id of the user we pass in
-      targetUserId as string
-    );
+    let res = await fetchPostsAboutClient(limit, clientId as string);
 
     if (res.success) {
-      if (posts.length == res?.data?.length) {
+      //   TODO Known bug that it doesn't update hasMore (loading more posts) stte unless you scroll up a little bit.
+      //   Seems like it has to do with the flatlist and not synchronizing data (i.e. setTimeout won't fitx it)
+      if (postsAboutClient.length == res?.data?.length) {
         setHasMore(false);
       }
 
-      setPosts(res.data);
+      setPostsAboutClient(res.data);
     }
   };
 
+  // TODO How to handle userLocalSearchPArams being string or str[] in TS
   useEffect(() => {
-    // TODO How to handle userLocalSearchPArams being string or str[] in TS
-    // if (!targetUserId[0]) return null;
+    if (!clientId || !clientId?.[0]) {
+      console.log(`hello mr jhawn`);
+      //   return null;
+    }
 
-    getUserDetails(targetUserId as string);
-
-    console.log(`targetUserId: ${JSON.stringify(targetUserId, null, 2)}`);
+    getClientDetails(clientId as string);
   }, []);
 
-  const [userData, setUserData] = useState();
-  const getUserDetails = async (userId: string) => {
-    let res = await fetchUserDetails(userId);
-    if (res.success) {
-      console.log(
-        `fetch user data => res.data: ${JSON.stringify(res.data, null, 2)}`
-      );
-      setUserData(res.data);
+  const getClientDetails = async (clientId: number | string) => {
+    setLoading(true);
+    let res = await fetchClientDetails(clientId);
+
+    if (res?.success) {
+      setClientData(res?.data);
     }
-    setStartLoading(false); // in postDetails
+    setLoading(false); // in postDetails
   };
 
   return (
     <ScreenWrapper>
       <FlatList
-        data={posts}
+        data={postsAboutClient}
         ListHeaderComponent={
           <>
-            <UserHeader user={userData} router={router} theme={theme} />
+            <ClientHeader client={clientData} />
             <View
               style={[
                 styles.horizontalLine,
@@ -117,23 +98,24 @@ const UserProfile = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listStyle}
         keyExtractor={(item: any) => item.id.toString()}
-        renderItem={({ item }) =>
-          targetUserId ? (
-            <PostCard
-              item={item}
-              currentUser={user}
-              router={router}
-              canNavigateToUser={false}
-            />
-          ) : null
-        }
+        renderItem={({ item }) => (
+          <PostCard
+            item={item}
+            currentUser={user}
+            router={router}
+            canNavigateToUser={false}
+          />
+        )}
         onEndReached={() => {
           getPosts();
-          console.log("End reached!");
         }}
         ListFooterComponent={
           hasMore ? (
-            <View style={{ marginVertical: posts.length == 0 ? 100 : 30 }}>
+            <View
+              style={{
+                marginVertical: postsAboutClient.length == 0 ? 100 : 30,
+              }}
+            >
               <Loading />
             </View>
           ) : (
@@ -156,25 +138,36 @@ const UserProfile = () => {
   );
 };
 
-const UserHeader = ({ user }: { [key: string]: any }) => {
+/* 
+  "profile_image": "[\"postImages/1732395291175.png\",\"postImages/1732395291176.png\"]"
+*/
+const ClientHeader = ({ client }: { client: Client }) => {
   const theme = useTheme();
+
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: theme.colors.background,
         paddingHorizontal: wp(4),
+        backgroundColor: theme.colors.background,
       }}
     >
       <View>
-        <Header title={translate("common:profile")} showBackButton />
+        <Header title={translate("common:client")} showBackButton />
       </View>
 
       <View style={styles.container}>
         <View style={{ gap: 15 }}>
           <View style={styles.avatarContainer}>
             <Avatar
-              uri={user?.image}
+              //   I have no freaking clue why you can do it inline here but as soon as it's a function...everything goes out the window
+              uri={client?.profile_image?.slice(
+                client?.profile_image?.indexOf("postImages"),
+                client?.profile_image?.indexOf(
+                  ".png",
+                  client?.profile_image?.indexOf("postImages")
+                ) + 4
+              )}
               size={hp(12)}
               rounded={myTheme.radius.xxl * 1.4}
             />
@@ -189,56 +182,16 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
                 },
               ]}
             >
-              {user && user.name}
+              {client?.first_name && client?.first_name && client?.last_name
+                ? `${client?.first_name} ${client?.last_name}`
+                : client?.first_name}
             </Text>
-            <Text
-              style={[
-                styles.infoText,
-                {
-                  color: theme.colors.onSurface,
-                },
-              ]}
-            >
-              {user && user.address}
-            </Text>
-          </View>
 
-          <View style={{ gap: 10 }}>
-            {user && user.email && (
-              <View style={styles.info}>
-                {/* name mail */}
-                <Icon name="email" color={theme.colors.secondary} />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: theme.colors.onBackground },
-                  ]}
-                >
-                  {user.email}
-                </Text>
-              </View>
-            )}
-            {user && user?.phoneNumber && (
-              <View style={styles.info}>
-                {/* name call/phone */}
-                <Icon name="phone" color={theme.colors.secondary} />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: theme.colors.onBackground },
-                  ]}
-                >
-                  {user && user.phoneNumber}
-                </Text>
-              </View>
-            )}
-            {user && user?.bio && (
-              <Text
-                style={[styles.infoText, { color: theme.colors.onBackground }]}
-              >
-                {user && user.bio}
-              </Text>
-            )}
+            {/* DEBUG TEXT */}
+            {/* <Text style={{ color: "red" }}>{typeof client?.profile_image}</Text>
+            <Text style={{ color: "red" }}>
+              {JSON.stringify(client, null, 2)}
+            </Text> */}
           </View>
         </View>
       </View>
@@ -246,7 +199,7 @@ const UserHeader = ({ user }: { [key: string]: any }) => {
   );
 };
 
-export default UserProfile;
+export default ClientProfile;
 
 const styles = StyleSheet.create({
   container: {

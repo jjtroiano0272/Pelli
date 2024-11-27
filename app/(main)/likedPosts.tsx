@@ -81,8 +81,10 @@ const likedPosts = () => {
             }}
           >
             <View>
-              {/* TODO translate */}
-              <Header title={"Liked Posts"} showBackButton />
+              <Header
+                title={translate("likedPostsScreen:title")}
+                showBackButton
+              />
             </View>
           </View>
         }

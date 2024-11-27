@@ -43,6 +43,8 @@ const en = {
     grantPermission: "Grant Permission",
     done: "Done",
     deletedUser: "[deleted]",
+    client: "Client",
+    recentPosts: "Recent posts",
   },
   errors: {
     signOut: "Error signing out",
@@ -88,6 +90,7 @@ const en = {
     formulaDescriptionPlaceholder: "Description (e.g. 20g Bronze + 40 AU)",
     addToPost: "Add to post",
     title: "Create Post",
+    editingTitle: "Edit Post",
     postBodyPlaceholder: `What are some details about your client you'd like to share?`,
   },
   postCard: { formulaCopied: "Formula copied!" },
@@ -123,6 +126,9 @@ const en = {
     title: "Report Post",
   },
   searchableTextInputScreen: { addClient: "Add as new client" },
+  likedPostsScreen: {
+    title: "Liked Posts",
+  },
 
   errorScreen: {},
   emptyStateComponent: {

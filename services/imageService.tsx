@@ -13,6 +13,7 @@ export const getUserImageSrc = (imagePath: string) => {
   }
 };
 
+/**  @param Expects ONLY a string, not built for string arrays, so just pass it the first element in the array. */
 export const getSupabaseFileUrl = (filePath: string) => {
   if (!filePath) return null;
 

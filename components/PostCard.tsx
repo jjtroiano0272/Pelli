@@ -44,6 +44,7 @@ import { MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
 import { Video } from "expo-av";
 import { myTheme } from "@/constants/theme";
+import { Client } from "@/types/globals";
 
 const PostCard = ({
   item,
@@ -98,6 +99,17 @@ const PostCard = ({
       pathname: "/postDetails",
       params: {
         postId: item?.id,
+      },
+    });
+  };
+
+  const openClientPage = (clientId: number) => {
+    // if (!showMoreIcon) return null;
+
+    router.push({
+      pathname: "/clientProfile",
+      params: {
+        clientId: clientId,
       },
     });
   };
@@ -263,6 +275,25 @@ const PostCard = ({
     }
   };
 
+  const renderClient = (client: Client) => {
+    console.log(`renderClient: ${JSON.stringify(client, null, 2)}`);
+    console.log(`item.client: ${JSON.stringify(item.client, null, 2)}`);
+
+    if (!item) return "[client deleted]";
+
+    if (item.client.first_name) {
+      if (item.client.last_name) {
+        return `>> ${translate("homeScreen:clientName")}: ${
+          item.client.first_name
+        } ${item.client.last_name}`;
+      } else {
+        return `>> ${translate("homeScreen:clientName")}: ${
+          item.client.first_name
+        }`;
+      }
+    }
+  };
+
   const liked = likes.filter((like) => like.userId == currentUser?.id)[0]
     ? true
     : false;
@@ -273,6 +304,12 @@ const PostCard = ({
   const handleImageLoad = () => {
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    console.log(
+      `item?.file*: ${JSON.stringify(destringifyArray(item?.file), null, 2)}`
+    );
+  }, []);
 
   return (
     <Pressable
@@ -368,18 +405,20 @@ const PostCard = ({
       >
         <View style={styles.postBody}>
           {item?.client?.first_name && (
-            <Text
-              // @ts-ignore
-              style={{
-                color: theme.colors.secondary,
-                fontWeight: "600",
-                marginVertical: 10,
-              }}
-            >
-              {`>>`} {translate("homeScreen:clientName")}:{" "}
-              {item.client.first_name}{" "}
-              {item.client.last_name && item.client.last_name}
-            </Text>
+            <TouchableOpacity onPress={() => openClientPage(item?.client?.id)}>
+              <Text
+                // @ts-ignore
+                style={{
+                  color: theme.colors.secondary,
+                  fontWeight: "600",
+                  marginVertical: 10,
+                }}
+              >
+                {`>>`} {translate("homeScreen:clientName")}:{" "}
+                {item.client.first_name}{" "}
+                {item.client.last_name && item.client.last_name}
+              </Text>
+            </TouchableOpacity>
           )}
 
           {/* /**
@@ -521,7 +560,7 @@ const PostCard = ({
                   colorMode={theme.dark ? "dark" : "light"}
                 >
                   <Image
-                    source={getSupabaseFileUrl(item)}
+                    source={getSupabaseFileUrl(destringifyArray(item)?.[0])}
                     style={{ height: "100%", width: "100%" }}
                     onLoad={handleImageLoad}
                   />
@@ -554,7 +593,9 @@ const PostCard = ({
                   colorMode={theme.dark ? "dark" : "light"}
                 >
                   <Image
-                    source={getSupabaseFileUrl(item?.file)!}
+                    source={
+                      getSupabaseFileUrl(destringifyArray(item.file)?.[0])!
+                    }
                     transition={100}
                     style={[
                       styles.postMedia,

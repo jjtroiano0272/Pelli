@@ -1,3 +1,4 @@
+import { CommonActions, StackActions } from "@react-navigation/native";
 import {
   Alert,
   Keyboard,
@@ -11,7 +12,12 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Link,
+  useLocalSearchParams,
+  useRouter,
+  useNavigation,
+} from "expo-router";
 import {
   createComment,
   fetchPostDetails,
@@ -36,12 +42,14 @@ import {
   useTheme,
 } from "react-native-paper";
 import { translate } from "@/i18n";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 const PostDetails = () => {
   const theme = useTheme();
   const { postId, commentId } = useLocalSearchParams();
   const { user } = useAuth();
   const router = useRouter();
+  const navigation = useNavigation();
   const [startLoading, setStartLoading] = useState(true);
   const inputRef = useRef(null);
   const commentRef = useRef("");
@@ -49,7 +57,9 @@ const PostDetails = () => {
   const [inputValue, setInputValue] = useState("");
   const [post, setPost] = useState(null);
 
-  const handleNewComment = async (payload: any) => {
+  const handleNewComment = async (
+    payload: RealtimePostgresChangesPayload<any>
+  ) => {
     console.log(`got new comment: ${JSON.stringify(payload.new, null, 2)}`);
     console.log(`payload: ${JSON.stringify(payload, null, 2)}`);
 
@@ -156,9 +166,27 @@ const PostDetails = () => {
     }
   };
 
+  /** Just turns the page into newPost */
   const onEditPost = async (item: any) => {
-    router.back();
-    router.push({ pathname: "/newPost", params: { ...item } });
+    // Orgiinal
+    // router.back();
+    // router.push({ pathname: "/newPost", params: { ...item } });
+
+    // const popToAction = StackActions.popTo("newPost", { ...item }, true);
+    // navigation.dispatch(popToAction);
+
+    console.log("\x1b[32m" + `shape of item: ${JSON.stringify(item, null, 2)}`);
+    // router.dispatch(CommonActions.navigateDeprecated("newPost", { ...item }));
+    router.replace({
+      pathname: "/newPost",
+      params: { ...item, editing: 1 },
+      // params: { ...item },
+      // params: { JSON.stringify({...item, editing:true}) },
+      // params: { ...item, id: item.id, clientId: item.clientId, editing: 1 },
+    });
+
+    // router.dismissAll();
+    // router.navigate({ pathname: "/newPost", params: { ...item } });
   };
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
   Pressable,
+  TextInputProps,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
@@ -22,8 +23,14 @@ import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
 import { getSupabaseFileUrl } from "@/services/imageService";
 import { Video } from "expo-av";
-import { createOrUpdatePost } from "@/services/postService";
 import {
+  createOrUpdatePost,
+  fetchPostDetails,
+  updatePost,
+} from "@/services/postService";
+import {
+  Chip,
+  IconButton,
   MD3Theme,
   useTheme,
   useTheme as usetheme,
@@ -37,11 +44,26 @@ import * as MediaLibrary from "expo-media-library";
 import Slider from "@/components/Slider";
 import { faker } from "@faker-js/faker/.";
 import SearchableTextInput from "@/components/SearchableTextInput";
-import { createOrUpdateClient } from "@/services/clientService";
+import {
+  createOrUpdateClient,
+  fetchClientDetails,
+} from "@/services/clientService";
+import { Client } from "@/types/globals";
 
 const NewPost = ({ route }: { route: any }) => {
   const theme = useTheme();
+  // original:
   const post = useLocalSearchParams();
+
+  console.log("\x1b[37m" + `post params: ${JSON.stringify(post, null, 2)}`);
+
+  // const { post, editing }: { [key: string]: any } = useLocalSearchParams();
+  // const {
+  //   id,
+  //   clientId,
+  //   editing,
+  // }: { [key: string]: any; clientId: number; editing: number } =
+  //   useLocalSearchParams();
   const { user } = useAuth();
   const bodyRef = useRef("");
   const editorRef = useRef(null);
@@ -50,23 +72,100 @@ const NewPost = ({ route }: { route: any }) => {
   const formulaTypeRef = useRef("");
   const [selectedClient, setSelectedClient] = useState<Client | null>();
   const [isNewClient, setIsNewClient] = useState(false);
+  const [fromNewPost, setFromNewPost] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<
     // | ImagePicker.ImagePickerAsset
     ImagePicker.ImagePickerAsset[] | null | undefined
   >();
-  const richText = React.useRef();
+  const [inputValue, setInputValue] = useState("");
+  const ref = useRef<{
+    inputValue: string;
+    otherValueYouCanImagine: number | string | null;
+
+    formulaType: string;
+    formulaDescription: string;
+  }>({
+    inputValue: "",
+    otherValueYouCanImagine: null,
+
+    formulaType: "",
+    formulaDescription: "",
+  });
+
+  const getAllDetails = async (clientId: string) => {
+    setLoading(true);
+    let [clientRes, postRes] = await Promise.all([
+      fetchClientDetails(clientId),
+      fetchPostDetails(post.id),
+    ]);
+    setLoading(false);
+
+    console.log(`clientRes: ${JSON.stringify(clientRes, null, 2)}`);
+    console.log(`postRes: ${JSON.stringify(postRes, null, 2)}`);
+
+    if (clientRes?.success && postRes?.success) {
+      // bodyRef.current = "DOES ANYTHING FUCKING SHOW UP";
+
+      console.log(
+        `on success => clientRes.data: ${JSON.stringify(
+          clientRes.data,
+          null,
+          2
+        )}`
+      );
+
+      setFile([postRes?.data?.file]);
+
+      // Set the input values to be what's coming down from the server
+      // ✅
+      const { formula_type, formula_description } = postRes?.data?.formula_info;
+      ref.current.formulaType = formula_type;
+      setInputValue(formula_type);
+      ref.current.formulaDescription = formula_description;
+
+      // Previous approach
+      // formulaTypeRef.current = postRes?.data?.formula_info?.formula_type;
+      // formulaDescriptionRef.current =
+      //   postRes?.data?.formula_info?.formula_description;
+
+      // set client:Client which we will pass in to searchableTextInput
+      setSelectedClient(clientRes?.data);
+      setFromNewPost(true);
+    } else {
+      console.error(clientRes.msg);
+      console.error(postRes.msg);
+    }
+
+    // return [clientRes, postRes];
+
+    // if (res.success) {
+    //   // set state or var that will be rendered
+    //   return res.data;
+    // } else {
+    //   // TODO Make snackbar notification
+    //   Alert.alert("Couldn't get client data", res.msg);
+    // }
+  };
 
   // Fills the post data if it exists on server
   useEffect(() => {
     if (post && post.id) {
+      console.log(`post, 167: ${JSON.stringify(post, null, 2)}`);
+
+      getAllDetails(post?.clientId);
+
       bodyRef.current = post.body;
       setFile(post.file || null);
 
       setTimeout(() => {
         editorRef?.current?.setContentHTML(post.body);
-      }, 300);
+      }, 500);
+    } else {
+      console.log(
+        "\x1b[32m" + `falsy => post: ${JSON.stringify(post, null, 2)}`
+      );
     }
   }, []);
 
@@ -198,19 +297,54 @@ const NewPost = ({ route }: { route: any }) => {
     }
 
     let data = {
+      // Check postRes log for what's comin in
+      // file: file ? ,
       file,
       body: bodyRef?.current,
       // client_name: clientNameRef?.current,
       clientId: !isNewClient ? selectedClient?.id : newClientId,
       formula_info: {
-        formula_type: formulaTypeRef?.current,
-        formula_description: formulaDescriptionRef?.current,
+        // formula_type: formulaTypeRef?.current,
+        // formula_description: formulaDescriptionRef?.current,
+
+        formula_type: ref.current.formulaType,
+        formula_description: ref.current.formulaDescription,
       },
       userId: user?.id,
     };
 
-    // TODO: Better explanation for what this actually does?
-    if (post && post?.id) data.id = post.id;
+    console.log(
+      "\x1b[32m" + `data to submit: ${JSON.stringify(data, null, 2)}`
+    );
+
+    // If the post already exists, replace the submitting id to the id of the post that exists in the db
+    // and copy over other fields.
+    if (post && post?.id) {
+      console.log(
+        "\x1b[36m" + `post in equal: ${JSON.stringify(post, null, 2)}`
+      );
+
+      data.id = post.id;
+      data.file = post.file;
+      data.clientId = post.clientId;
+
+      setLoading(true);
+      let res = await updatePost(data);
+      setLoading(false);
+
+      if (res?.success) {
+        setFile(null);
+        bodyRef.current = "";
+        editorRef.current?.setContentHTML("");
+        clientNameRef.current = "";
+
+        router.back();
+      } else {
+        Alert.alert("Update", res?.msg);
+      }
+
+      return;
+    }
 
     // create post
     setLoading(true);
@@ -220,14 +354,15 @@ const NewPost = ({ route }: { route: any }) => {
     console.log(`post res: ${JSON.stringify(res, null, 2)}`);
 
     // Clear fields on post success
-    if (res.success) {
+    if (res?.success) {
       setFile(null);
       bodyRef.current = "";
       editorRef.current?.setContentHTML("");
       clientNameRef.current = "";
+
       router.back();
     } else {
-      Alert.alert("Post", res.msg);
+      Alert.alert("Post", res?.msg);
     }
   };
 
@@ -269,33 +404,69 @@ const NewPost = ({ route }: { route: any }) => {
     );
   }, [file, selectedClient]);
 
+  /** Transform the file arrray into the right shape which has the correct fields that Slider can use. */
   const transformData = (data) => {
-    return data.map((item) => ({
+    if (!data || !Array.isArray(data)) return null;
+    console.log("\x1b[36m" + `data: ${JSON.stringify(data, null, 2)}`);
+
+    return data?.map((item) => ({
       title: item.assetId,
       image: { uri: item.uri },
       description: item.fileName,
     }));
   };
 
-  const handleRemoveImage = (uri) => {
+  // The uri looks like "file:///var/mobile/Containers/Data/Application/47897D7E-1A53-49DB-B17D...BB8B-317765E87EAC.png"
+  const handleRemoveImage = (uri: string) => {
     console.log(
       `Expecting to see the object for the image upon which delete was pressed`
     );
     console.log(`image: ${JSON.stringify(uri, null, 2)}`);
-
-    /* image comes back like this
-     {
-        "uri": "file:///var/mobile/Containers/Data/Application/47897D7E-1A53-49DB-B17D...BB8B-317765E87EAC.png"
-      } 
-
-      so now I'll just need to filter the array out where image here^^ passed in doesn't match what's in the array (delete from array)
-    */
   };
+
+  const onChangeInput: TextInputProps["onChange"] = (event) => {
+    ref.current.inputValue = event.nativeEvent.text;
+
+    setInputValue(event.nativeEvent.text);
+  };
+
+  useEffect(() => {
+    console.log(`selectedClient: ${JSON.stringify(selectedClient, null, 2)}`);
+    console.log(
+      `ref.current.formulaType: ${JSON.stringify(
+        ref.current.formulaType,
+        null,
+        2
+      )}`
+    );
+    console.log(
+      `ref.current.formulaDescription: ${JSON.stringify(
+        ref.current.formulaDescription,
+        null,
+        2
+      )}`
+    );
+  }, [
+    selectedClient,
+    ref.current.formulaDescription,
+    ref.current.formulaType,
+    ref.current.inputValue,
+    ref.current,
+    ref,
+  ]);
 
   return (
     <ScreenWrapper>
       <View style={styles.container}>
-        <Header title={translate("newPostScreen:title")} showBackButton />
+        <Header
+          title={translate(
+            !post?.editing
+              ? "newPostScreen:title"
+              : "newPostScreen:editingTitle"
+            // "newPostScreen:title"
+          )}
+          showBackButton
+        />
         <ScrollView
           contentContainerStyle={{ gap: 20 }}
           showsVerticalScrollIndicator={false}
@@ -333,37 +504,85 @@ const NewPost = ({ route }: { route: any }) => {
             </View>
           </View>
 
-          {/* <Input
-            autoCapitalize="words"
-            icon={<Icon name="user" size={26} strokeWidth={1.6} />}
-            placeholder={translate("common:clientName")}
-            onChangeText={(value: string) => (clientNameRef.current = value)}
-          /> */}
           {/* Client input */}
-          <SearchableTextInput
-            selectedClient={selectedClient}
-            setSelectedClient={setSelectedClient}
-            isNewClient={isNewClient}
-            setIsNewClient={setIsNewClient}
-          />
+          {selectedClient &&
+          selectedClient.first_name &&
+          selectedClient.last_name ? (
+            <View
+              style={{
+                borderColor: theme.colors.outline,
+                borderRadius: myTheme.radius.xxl,
 
-          {/* formula type */}
+                flexDirection: "row",
+                height: hp(7.2),
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderWidth: 0.4,
+                borderCurve: "continuous",
+                paddingHorizontal: 18,
+                gap: 12,
+                backgroundColor: theme.colors.secondaryContainer,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 12, // Space between Avatar and Text
+                }}
+              >
+                {selectedClient.profile_image && (
+                  <Avatar uri={selectedClient.profile_image} size={hp(6)} />
+                )}
+                <Text
+                  style={{ color: theme.colors.onSecondaryContainer }}
+                >{`${selectedClient.first_name} ${selectedClient.last_name}`}</Text>
+              </View>
+
+              <IconButton
+                icon={"close-circle"}
+                style={{ right: -10, overflow: "hidden" }}
+                onPress={() => setSelectedClient(undefined)}
+              />
+            </View>
+          ) : (
+            <SearchableTextInput
+              selectedClient={selectedClient}
+              setSelectedClient={setSelectedClient}
+              isNewClient={isNewClient}
+              setIsNewClient={setIsNewClient}
+            />
+          )}
+
+          {/* Formula type */}
           <Input
-            // icon={<Icon name='user' size={26} strokeWidth={1.6} />}
+            // icon={<Icon name="user" size={26} strokeWidth={1.6} />}
             autoCapitalize="words"
             placeholder={translate("newPostScreen:formulaTypePlaceholder")}
-            onChangeText={(value: string) => (formulaTypeRef.current = value)}
+            // A)
+            // onChangeText={(value: string) => (formulaTypeRef.current = value)}
+            // value={formulaTypeRef.current}
+
+            // B)
+            defaultValue={ref.current.formulaType}
+            value={inputValue}
+            onChange={onChangeInput}
           />
-          {/* formula description */}
+          <Text>{inputValue}</Text>
+          {/* Formula description */}
           <Input
             // icon={<Icon name='user' size={26} strokeWidth={1.6} />}
             autoCapitalize="words"
             placeholder={translate(
               "newPostScreen:formulaDescriptionPlaceholder"
             )}
-            onChangeText={(value: string) =>
-              (formulaDescriptionRef.current = value)
-            }
+            // onChangeText={(value: string) =>
+            //   (formulaDescriptionRef.current = value)
+            // }
+            // value={formulaDescriptionRef.current}
+
+            defaultValue={ref.current.formulaDescription}
+            onChange={onChangeInput}
           />
 
           <View>
@@ -412,7 +631,7 @@ const NewPost = ({ route }: { route: any }) => {
             | =>        			Multiple media shown
             |----------------------------------------------------------------------------------------------------
           */}
-          {file && file?.length > 1 && (
+          {file && file?.length > 1 && transformData(file) && (
             <Slider
               itemList={transformData(file)}
               onPress={handleRemoveImage}

@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "expo-router";
 import {
   createOrUpdateClient,
-  fetchClientData,
+  searchForClient,
 } from "@/services/clientService";
 import {
   ActivityIndicator,
@@ -24,73 +24,45 @@ import Loading from "./Loading";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { myTheme } from "@/constants/theme";
 import Avatar from "./Avatar";
-import { hp } from "@/helpers/common";
+import { destringifyArray, hp } from "@/helpers/common";
 import Input from "./Input";
 import Icon from "@/assets/icons";
 import { translate } from "@/i18n";
+import { Client } from "@/types/globals";
+import { getSupabaseFileUrl } from "@/services/imageService";
+
+interface SearchableTextInputProps {
+  selectedClient: Client | null;
+  isNewClient: boolean;
+  setSelectedClient: React.Dispatch<React.SetStateAction<Client | null>>;
+  setIsNewClient: React.Dispatch<React.SetStateAction<boolean>>;
+  fromNewPost: boolean;
+}
 
 const SearchableTextInput = ({
   selectedClient,
   isNewClient,
   setSelectedClient,
   setIsNewClient,
-}: {
-  selectedClient: Client | null;
-  isNewClient: boolean;
-  setSelectedClient: React.Dispatch<React.SetStateAction<Client | null>>;
-  setIsNewClient: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+  fromNewPost,
+}: SearchableTextInputProps) => {
   const theme = useTheme();
   const numResultsToShow = 5;
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [clientSelectedFromDB, setClientSelectedFromDB] = useState(false);
-  //   const [isNewClient, setIsNewClient] = useState(false);
-  //   const [selectedClient, setSelectedClient] = useState<Client>();
+  const [showResults, setShowResults] = useState(false);
 
   const getSearchResults = async (text: string) => {
     if (!text) return null;
 
     setLoading(true);
-    let res = await fetchClientData(text);
+    let res = await searchForClient(text);
 
     if (res.success) setResults(res.data);
     setLoading(false);
   };
-
-  //   const onSubmitNewClient = async () => {
-  //     Keyboard.dismiss();
-
-  //     let data = {
-  //       first_name: query.split(" ")[0],
-  //       last_name: query.split(" ")[1],
-
-  //       // any more client details
-  //     };
-
-  //     // // TODO: Better explanation for what this actually does?
-  //     // if (post && post?.id) data.id = post.id;
-
-  //     // create post
-  //     setLoading(true);
-  //     let res = await createOrUpdateClient(data);
-  //     setLoading(false);
-
-  //     // Clear fields on post success
-  //     if (res.success) {
-  //       // router.back();
-  //     } else {
-  //       Alert.alert("Post", res.msg);
-  //     }
-  //   };
-
-  useEffect(() => {
-    getSearchResults(query);
-
-    // Maybe a cleanup fn?
-  }, [query]);
 
   //   Listener for editing client name
   useEffect(() => {
@@ -100,25 +72,52 @@ const SearchableTextInput = ({
     if (
       query !== `${selectedClient?.first_name} ${selectedClient?.last_name}`
     ) {
+      // Goes into falsy on mount from newPost redirect
+      console.log("\x1b[34m" + `falsy`);
+      console.log(`query: ${JSON.stringify(query, null, 2)}`);
+
       //   setSelectedClient(null);
+      setShowResults(false);
       setIsNewClient(true);
       setSelectedClient({
         first_name: query.split(" ")[0],
         last_name: query.split(" ")[1],
       });
+      // setQuery(selectedClient?.first_name + " " + selectedClient?.last_name);
     }
   }, [query]);
+
+  useEffect(() => {
+    console.log("\x1b[31m" + `query: ${JSON.stringify(query, null, 2)}`);
+    getSearchResults(query);
+    if (query?.length > 0) {
+      setShowResults(true);
+    }
+
+    // Maybe a cleanup fn?
+  }, [query]);
+
+  // useEffect(() => {
+  //   if (
+  //     query !== `${selectedClient?.first_name} ${selectedClient?.last_name}`
+  //   ) {
+  //     setShowResults(false);
+  //     setIsNewClient(false);
+  //     setQuery(selectedClient?.first_name + " " + selectedClient?.last_name);
+  //   }
+  // }, [selectedClient]);
 
   useEffect(() => {
     console.log(`query: ${JSON.stringify(query, null, 2)}`);
     console.log(`selectedClient: ${JSON.stringify(selectedClient, null, 2)}`);
     console.log(`${results.length} results found`);
-    // console.log(`results: ${JSON.stringify(results, null, 2)}`);
+    console.log(`results: ${JSON.stringify(results, null, 2)}`);
   }, [query, selectedClient, results]);
 
   return (
     <View>
       <Input
+        clearButtonMode={selectedClient ? "always" : "never"}
         autoCapitalize="words"
         icon={
           !selectedClient && isNewClient ? (
@@ -138,6 +137,12 @@ const SearchableTextInput = ({
                   borderColor: theme.colors.outline,
                 }}
               />
+
+              // <Avatar
+              //   uri={getSupabaseFileUrl(
+              //     destringifyArray(selectedClient?.profile_image)?.[0]
+              //   )}
+              // />
             )
           )
 
@@ -152,95 +157,52 @@ const SearchableTextInput = ({
         value={query}
       />
 
-      {query.length > 0 &&
+      {
+        // query.length > 0 &&
         results.length > 0 &&
-        selectedClient &&
-        results.slice(0, numResultsToShow).map((item: Client, key: number) => {
-          return (
-            <View key={item.id} style={styles.searchResultItemContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.searchResultItem,
-                  {
-                    backgroundColor: theme.colors.background,
-                    borderColor: theme.colors.elevation.level5,
-                  },
-                ]}
-                onPress={() => {
-                  setQuery(`${item.first_name} ${item.last_name}`);
-                  setSelectedClient(item);
-                  setIsNewClient(false);
+          // selectedClient &&
 
-                  Keyboard.dismiss();
-                }}
-              >
-                <Text
-                  style={{
-                    padding: 10,
-                    fontSize: 17,
-                    color: theme.colors.onBackground,
-                  }}
-                >
-                  {item?.first_name} {item?.last_name}
-                </Text>
-                <View style={{ padding: 10 }}>
-                  {/* A */}
-                  <Avatar uri={item?.profile_image} />
+          showResults &&
+          results
+            .slice(0, numResultsToShow)
+            .map((item: Client, key: number) => {
+              return (
+                <View key={item.id} style={styles.searchResultItemContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.searchResultItem,
+                      {
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.elevation.level5,
+                      },
+                    ]}
+                    onPress={() => {
+                      setShowResults(false);
+                      setQuery(`${item.first_name} ${item.last_name}`);
+                      setSelectedClient(item);
+                      setIsNewClient(false);
 
-                  {/* B */}
-                  {/* <Image
-                    source={{
-                      uri: item?.profile_image,
+                      Keyboard.dismiss();
                     }}
-                    // transition={100}
-                    style={{
-                      height: hp(4.5),
-                      width: hp(4.5),
-                      borderRadius: theme.radius.md,
-                      borderColor: theme.colors.outline,
-                    }}
-                  /> */}
+                  >
+                    <Text
+                      style={{
+                        padding: 10,
+                        fontSize: 17,
+                        color: theme.colors.onBackground,
+                      }}
+                    >
+                      {item?.first_name} {item?.last_name}
+                    </Text>
+                    <View style={{ padding: 10 }}>
+                      {/* A */}
+                      <Avatar uri={item?.profile_image} />
+                    </View>
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            </View>
-          );
-        })}
-      {/* Always show add new client */}
-      {/* {query.length > 0 && !selectedClient && (
-        <TouchableOpacity
-          style={{
-            backgroundColor: theme.colors.elevation.level2,
-            borderColor: theme.colors.elevation.level5,
-            borderWidth: 1,
-            width: "100%",
-            borderRadius: 5,
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          onPress={onSubmitNewClient}
-        >
-          <Text
-            style={{
-              padding: 10,
-              fontSize: 17,
-              color: theme.colors.onBackground,
-              fontWeight: theme.fontWeight.semibold,
-            }}
-          >
-            {translate("searchableTextInputScreen:addClient")}
-          </Text>
-          <View style={{ paddingVertical: 10 }}>
-            <View
-              // transition={100}
-              style={{
-                height: hp(4.5),
-                // width: hp(4.5),
-              }}
-            />
-          </View>
-        </TouchableOpacity>
-      )} */}
+              );
+            })
+      }
     </View>
   );
 };

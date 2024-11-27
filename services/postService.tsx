@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { uploadFile, uploadMultipleFiles } from "./imageService";
+import { PostData } from "@/types/globals";
 
 // for example, post that is passed on in newPost looks like
 /* let data = {
@@ -33,21 +34,29 @@ export const createOrUpdatePost = async (post: PostData) => {
         post?.file?.[0]?.uri,
         isImage
       );
+      console.log(`fileResult(1): ${JSON.stringify(fileResult, null, 2)}`);
 
       if (fileResult.success) {
-        post.file = fileResult.data;
+        post.file = [fileResult.data];
+        console.log(`post.file: ${JSON.stringify(post.file, null, 2)}`);
       } else {
+        console.log(`fileResult: ${JSON.stringify(fileResult, null, 2)}`);
         return fileResult;
       }
 
+      console.log(
+        `post before passing to db method: ${JSON.stringify(post, null, 2)}`
+      );
       const { data, error } = await supabase
         .from("posts")
         .upsert(post)
         .select()
         .single();
 
+      console.log(`data response: ${JSON.stringify(data, null, 2)}`);
+
       if (error) {
-        console.error(`createPost error: `, error);
+        console.error(`createPost (single file upload) error: `, error);
       }
 
       return { success: true, data: data };
@@ -66,7 +75,7 @@ export const createOrUpdatePost = async (post: PostData) => {
         true
       );
 
-      console.log(`fileResult: ${JSON.stringify(fileResult, null, 2)}`);
+      console.log(`fileResult (1): ${JSON.stringify(fileResult, null, 2)}`);
       /* 
        LOG  fileResult: {
               "success": true,
@@ -78,7 +87,9 @@ export const createOrUpdatePost = async (post: PostData) => {
      */
       if (fileResult.success) {
         post.file = fileResult.data; // data is array of image paths...with the last two being duplicates for some fucking reason
+        console.log(`post.file: ${JSON.stringify(post.file, null, 2)}`);
       } else {
+        console.log(`fileResult (2): ${JSON.stringify(fileResult, null, 2)}`);
         return fileResult;
       }
 
@@ -98,8 +109,47 @@ export const createOrUpdatePost = async (post: PostData) => {
       return { success: true, data: data };
     }
   } catch (error) {
-    console.error(`createPost error: `, error);
+    console.error(`createPost generealized error: `, error);
     return { succes: false, msg: "Could not create the post" };
+  }
+};
+
+export const updatePost = async (post: PostData) => {
+  try {
+    let isImage = post?.file?.[0]?.type == "image";
+    let folderName = isImage ? "postImages" : "postVideos";
+
+    // let fileResult = await uploadFile(
+    //   folderName,
+    //   // post?.file?.uri,
+    //   post?.file?.[0]?.uri,
+    //   isImage
+    // );
+
+    // if (fileResult.success) {
+    //   post.file = [fileResult.data];
+    //   console.log(`post.file: ${JSON.stringify(post.file, null, 2)}`);
+    // } else {
+    //   console.log(`fileResult: ${JSON.stringify(fileResult, null, 2)}`);
+    //   return fileResult;
+    // }
+
+    console.log(`post before db method: ${JSON.stringify(post, null, 2)}`);
+
+    const { data, error } = await supabase
+      .from("posts")
+      .upsert(post)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(`updatePost error: `, error);
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error(`updatePost generealized error: `, error);
+    return { succes: false, msg: "Could not update the post" };
   }
 };
 
@@ -225,6 +275,37 @@ export const fetchPostDetails = async (postId: string) => {
   } catch (error) {
     console.error(`fetchPost error: `, error);
     return { success: false, msg: "Could not fetchPosts" };
+  }
+};
+
+export const fetchPostsAboutClient = async (limit = 10, clientId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select(
+        `
+        *, 
+        user: users(id, name, image),
+        postLikes (*),
+        comments (*, user: users(id, name, image))
+        `
+      )
+      // .eq("id", postId)
+      .eq("clientId", clientId)
+      .order("created_at", { ascending: false, referencedTable: "comments" })
+      .limit(limit);
+
+    if (error) {
+      // Code 22P02 is a current bug recognized in supabase: https://tinyurl.com/msbb9dtt
+      error.code != "22P02" &&
+        console.error(`fetchPostsAboutClient error: `, error);
+      return { success: false, msg: "Could not fetch posts about client" };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error(`fetchPost error: `, error);
+    return { success: false, msg: "Could not fetch posts about client" };
   }
 };
 
