@@ -43,10 +43,11 @@ import {
 } from "react-native-paper";
 import { translate } from "@/i18n";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { fetchClientDetails } from "@/services/clientService";
 
 const PostDetails = () => {
   const theme = useTheme();
-  const { postId, commentId } = useLocalSearchParams();
+  const { postId, commentId, clientId } = useLocalSearchParams();
   const { user } = useAuth();
   const router = useRouter();
   const navigation = useNavigation();
@@ -56,6 +57,7 @@ const PostDetails = () => {
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [post, setPost] = useState(null);
+  const [client, setClient] = useState(null);
 
   const handleNewComment = async (
     payload: RealtimePostgresChangesPayload<any>
@@ -90,6 +92,7 @@ const PostDetails = () => {
       .subscribe();
 
     getPostDetails();
+    getClientDetails();
 
     return () => {
       supabase.removeChannel(commentChannel);
@@ -100,6 +103,12 @@ const PostDetails = () => {
     let res = await fetchPostDetails(postId as string);
     if (res.success) setPost(res.data);
     setStartLoading(false);
+  };
+
+  const getClientDetails = async () => {
+    let res = await fetchClientDetails(clientId as string);
+    if (res.success) setClient(res.data);
+    // setStartLoading(false);
   };
 
   const onNewComment = async () => {
@@ -237,7 +246,11 @@ const PostDetails = () => {
         contentContainerStyle={styles.list}
       >
         <PostCard
-          item={{ ...post, comments: [{ count: post?.comments?.length }] }}
+          item={{
+            ...post,
+            // client: client,
+            comments: [{ count: post?.comments?.length }],
+          }}
           currentUser={user}
           router={router}
           hasShadow={false}

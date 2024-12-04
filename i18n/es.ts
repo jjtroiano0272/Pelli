@@ -127,6 +127,9 @@ const es = {
   likedPostsScreen: {
     title: "Posteos me gustaron", // *
   },
+  clientProfileScreen: {
+    seenBy: "Visto da", // *
+  },
 
   errorScreen: {},
   emptyStateComponent: {

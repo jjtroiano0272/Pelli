@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { Client } from "@/types/globals";
 
 export const searchForClient = async (text: string) => {
   try {
@@ -74,6 +75,25 @@ export const createOrUpdateClient = async (client: Client) => {
     return { success: true, data: data };
   } catch (error) {
     console.error(`createOrUpdateClient error: `, error);
+    return { success: false, msg: "Could not create the client" };
+  }
+};
+
+export const createClient = async (client: Client) => {
+  try {
+    const { data, error } = await supabase
+      .from("clients")
+      .insert(client)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(`createClient error: `, error);
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error(`createClient error: `, error);
     return { success: false, msg: "Could not create the client" };
   }
 };

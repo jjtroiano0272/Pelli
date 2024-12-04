@@ -1,4 +1,11 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +34,7 @@ interface Client {
   first_name: string;
   last_name: string;
   profile_image: string | string[];
+  phone_number?: string;
 }
 
 const ClientProfile = () => {
@@ -90,7 +98,7 @@ const ClientProfile = () => {
               ]}
             />
             <Text style={{ color: theme.colors.secondary }}>
-              {translate("common:recentPosts")}
+              {translate("clientProfileScreen:seenBy")}
             </Text>
           </>
         }
@@ -143,6 +151,23 @@ const ClientProfile = () => {
 */
 const ClientHeader = ({ client }: { client: Client }) => {
   const theme = useTheme();
+  const [loading, setLoading] = useState(false);
+
+  const handlePressCall = async (phoneNumber: string) => {
+    try {
+      setLoading(true);
+      await Linking.openURL(`tel:${phoneNumber}`);
+
+      /* 
+        // await Linking.openURL(`sms:${phoneNumber}?body=${messageBody}`); TODO: This needs to work correctly to set body
+        await Linking.openURL(`sms:${phoneNumber}`);
+
+      */
+    } catch (error) {
+      console.error(error);
+    }
+    setLoading(false);
+  };
 
   return (
     <View
@@ -192,6 +217,30 @@ const ClientHeader = ({ client }: { client: Client }) => {
             <Text style={{ color: "red" }}>
               {JSON.stringify(client, null, 2)}
             </Text> */}
+          </View>
+
+          <View style={{ gap: 10 }}>
+            {client && client?.phone_number && (
+              <TouchableOpacity
+                onPress={() => handlePressCall(client?.phone_number as string)}
+                style={styles.info}
+              >
+                {/* name call/phone */}
+                {!loading ? (
+                  <Icon name="phone" color={theme.colors.secondary} />
+                ) : (
+                  <Loading size={24} />
+                )}
+                <Text
+                  style={[
+                    styles.infoText,
+                    { color: theme.colors.onBackground },
+                  ]}
+                >
+                  {client && client.phone_number}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

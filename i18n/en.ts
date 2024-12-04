@@ -129,6 +129,7 @@ const en = {
   likedPostsScreen: {
     title: "Liked Posts",
   },
+  clientProfileScreen: { seenBy: "Seen by" },
 
   errorScreen: {},
   emptyStateComponent: {

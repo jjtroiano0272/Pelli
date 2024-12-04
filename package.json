@@ -67,6 +67,7 @@
     "react-i18next": "^15.0.3",
     "react-native": "0.76.2",
     "react-native-animated-splash-screen": "^2.0.5",
+    "react-native-autocomplete-input": "^5.5.2",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-ios-utilities": "^4.4.5",
     "react-native-keyboard-aware-scrollview": "^2.1.0",
@@ -83,7 +84,8 @@
     "react-native-web": "~0.19.10",
     "react-native-webview": "13.12.2",
     "rn-animated-progress-circle": "^1.0.0",
-    "zeego": "^2.0.1"
+    "zeego": "^2.0.1",
+    "@gorhom/bottom-sheet": "^5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

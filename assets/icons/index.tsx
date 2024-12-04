@@ -25,6 +25,7 @@ import Send from "./Send";
 import Edit from "./Edit";
 import Camera from "./Camera";
 import { useTheme } from "react-native-paper";
+import PhotoAlbum from "./PhotoAlbum";
 
 const icons = {
   home: Home,
@@ -49,6 +50,7 @@ const icons = {
   send: Send,
   edit: Edit,
   camera: Camera,
+  photoAlbum: PhotoAlbum,
 };
 
 type IconProps = {

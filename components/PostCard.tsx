@@ -99,6 +99,7 @@ const PostCard = ({
       pathname: "/postDetails",
       params: {
         postId: item?.id,
+        clientId: item?.clientId,
       },
     });
   };
@@ -306,9 +307,7 @@ const PostCard = ({
   };
 
   useEffect(() => {
-    console.log(
-      `item?.file*: ${JSON.stringify(destringifyArray(item?.file), null, 2)}`
-    );
+    console.log(`item: ${JSON.stringify(item, null, 2)}`);
   }, []);
 
   return (

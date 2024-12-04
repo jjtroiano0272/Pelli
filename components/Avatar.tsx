@@ -16,14 +16,16 @@ import { useTheme, withTheme } from "react-native-paper";
 interface AvatarProps {
   uri: string | string[];
   size?: number;
-  rounded?: 14;
+  rounded?: number;
   style?: StyleProp<ImageStyle>;
+  debug?: boolean;
 }
 const Avatar = ({
   uri,
   size = hp(4.5),
   rounded = 14,
   style = {},
+  debug = false,
 }: AvatarProps) => {
   const theme = useTheme();
 
@@ -39,6 +41,25 @@ const Avatar = ({
     return (
       <Image
         source={getUserImageSrc(uri?.[0])}
+        transition={100}
+        style={[
+          styles.avatar,
+          {
+            height: size,
+            width: size,
+            borderRadius: rounded,
+            borderColor: theme.colors.outline,
+          },
+          style,
+        ]}
+      />
+    );
+  }
+
+  if (debug) {
+    return (
+      <Image
+        source={{ uri: uri as string }}
         transition={100}
         style={[
           styles.avatar,

@@ -114,6 +114,49 @@ export const createOrUpdatePost = async (post: PostData) => {
   }
 };
 
+export const createPost = async (post: PostData) => {
+  try {
+    let isImage = post?.file?.[0]?.type == "image"; // I think this only works for stuff from phot roll
+    let folderName = isImage ? "postImages" : "postVideos";
+    let fileResult;
+
+    // Single-file uploads
+    if (post.file && typeof post.file == "object" && post.file.length === 1) {
+      fileResult = await uploadFile(
+        folderName,
+        // post?.file?.uri,
+        post?.file?.[0]?.uri,
+        isImage
+      );
+    }
+    // Multi-file uploads
+    else if (post.file.length > 1) {
+      fileResult = await uploadMultipleFiles("postImages", post?.file, true);
+    }
+
+    if (fileResult?.success) {
+      post.file = [fileResult?.data];
+    } else {
+      return fileResult;
+    }
+
+    const { data, error } = await supabase
+      .from("posts")
+      .insert(post)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(`createPost error: `, error);
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    console.error(`createPost error: `, error);
+    return { succes: false, msg: "Could not create the post" };
+  }
+};
+
 export const updatePost = async (post: PostData) => {
   try {
     let isImage = post?.file?.[0]?.type == "image";
@@ -134,13 +177,15 @@ export const updatePost = async (post: PostData) => {
     //   return fileResult;
     // }
 
-    console.log(`post before db method: ${JSON.stringify(post, null, 2)}`);
+    // const { data, error } = await supabase
+    //   .from("posts")
+    //   // .update(post)
+    //   // .eq("id", post?.id);
+    //   .upsert(post, { ignoreDuplicates: false })
+    //   .select();
+    // // .single();
 
-    const { data, error } = await supabase
-      .from("posts")
-      .upsert(post)
-      .select()
-      .single();
+    const { data, error } = await supabase.from("posts").upsert(post).select();
 
     if (error) {
       console.error(`updatePost error: `, error);
