@@ -896,6 +896,7 @@ const NewPost = ({ route }: { route: any }) => {
                     <Icon name="photoAlbum" />
                   </Pressable>
                 </View>
+                {/* comment */}
                 <Input
                   autoFocus
                   icon={<Icon name="user" size={26} strokeWidth={1.6} />}
