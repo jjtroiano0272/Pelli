@@ -171,12 +171,6 @@ const editProfile = () => {
       ? user.image
       : getUserImageSrc(user?.image);
 
-  useEffect(() => {
-    console.log(
-      `imageSource @editProfile: ${JSON.stringify(imageSource, null, 2)}`
-    );
-  }, [imageSource]);
-
   return (
     <ScreenWrapper>
       <ScrollView
