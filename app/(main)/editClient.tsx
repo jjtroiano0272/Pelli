@@ -34,16 +34,11 @@ const EditClient = () => {
 
   useEffect(() => {
     if (!clientId || !clientId?.[0]) {
-      console.log(`hello mr jhawn`);
       //   return null;
     }
 
     getClientDetails(clientId);
   }, []);
-
-  useEffect(() => {
-    console.log(`client: ${JSON.stringify(client, null, 2)}`);
-  }, [client]);
 
   return (
     <ScreenWrapper>
