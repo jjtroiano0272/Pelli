@@ -29,14 +29,6 @@ const Avatar = ({
 }: AvatarProps) => {
   const theme = useTheme();
 
-  useEffect(() => {
-    console.log(`uri: ${JSON.stringify(uri, null, 2)}`);
-    console
-      .log
-      // `getUserImageSrc(uri): ${JSON.stringify(getUserImageSrc(uri), null, 2)}`
-      ();
-  }, []);
-
   if (Array.isArray(uri)) {
     return (
       <Image

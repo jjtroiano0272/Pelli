@@ -234,8 +234,8 @@ const MainLayout = () => {
         name="(main)/mediaCapture"
         options={{
           presentation: "modal",
-          headerShown: true,
-          header: () => <ModalHandle />,
+          // headerShown: true,
+          // header: () => <ModalHandle />,
         }}
       />
 

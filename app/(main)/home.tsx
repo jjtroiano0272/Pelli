@@ -263,7 +263,7 @@ const Home = () => {
                 <View style={{ position: "relative" }}>
                   <View style={styles.circleMask}>
                     <Image
-                      source={require("@/assets/images/icon.png")}
+                      source={require("@/assets/images/strands-logo-2-circle-transparent.png")}
                       style={{
                         width: 50,
                         height: 50,

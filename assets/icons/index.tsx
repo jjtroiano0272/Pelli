@@ -26,6 +26,7 @@ import Edit from "./Edit";
 import Camera from "./Camera";
 import { useTheme } from "react-native-paper";
 import PhotoAlbum from "./PhotoAlbum";
+import RemovePhoto from "./RemovePhoto";
 
 const icons = {
   home: Home,
@@ -51,6 +52,7 @@ const icons = {
   edit: Edit,
   camera: Camera,
   photoAlbum: PhotoAlbum,
+  removePhoto: RemovePhoto,
 };
 
 type IconProps = {

@@ -28,7 +28,9 @@ const likedPosts = () => {
   const theme = useTheme();
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
-  const [likedPosts, setLikedPosts] = useState();
+  const [likedPosts, setLikedPosts] = useState<[{ [key: string]: any }] | []>(
+    []
+  );
   const router = useRouter();
 
   const textStyle = {
@@ -45,18 +47,21 @@ const likedPosts = () => {
   };
 
   const getLikedPosts = async () => {
-    if (!hasMore) return null;
+    if (!hasMore) {
+      return null;
+    }
     limit = limit + 10;
 
     let res = await fetchUsersLikedPosts(limit, user?.id);
 
     console.log(`res in getLikedPosts: ${JSON.stringify(res, null, 2)}`);
 
-    if (res.success) {
-      //   if (posts.length == res.data.length) {
-      //     setHasMore(false);
-      //   }
-      setLikedPosts(res.data);
+    if (res?.success) {
+      if (likedPosts?.length == res?.data?.length) {
+        setHasMore(false);
+      }
+
+      setLikedPosts(res?.data);
     }
   };
 
@@ -68,26 +73,10 @@ const likedPosts = () => {
     <ScreenWrapper>
       <FlatList
         data={likedPosts}
-        onEndReached={() => getLikedPosts()}
-        // showsVerticalScrollIndicator={false}
-        // keyExtractor={(item: any) => item?.id?.toString()}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listStyle}
-        ListHeaderComponent={
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: theme.colors.background,
-              paddingHorizontal: wp(4),
-            }}
-          >
-            <View>
-              <Header
-                title={translate("likedPostsScreen:title")}
-                showBackButton
-              />
-            </View>
-          </View>
-        }
+        onEndReached={() => getLikedPosts()}
+        keyExtractor={(item: any) => item?.id?.toString()}
         renderItem={({ item, index }) => (
           //   <List.Item
           //     // onPress={() => console.log('go to unblock user')}
@@ -129,6 +118,36 @@ const likedPosts = () => {
             interactable={false}
           />
         )}
+        // ListHeaderComponent={
+        //   <View
+        //     style={{
+        //       flex: 1,
+        //       backgroundColor: theme.colors.background,
+        //       paddingHorizontal: wp(4),
+        //     }}
+        //   >
+        //     <View>
+        //       <Header
+        //         title={translate("likedPostsScreen:title")}
+        //         showBackButton
+        //       />
+        //     </View>
+        //   </View
+        ListHeaderComponent={
+          <View
+            style={{
+              flex: 1,
+              marginBottom: 30,
+              paddingHorizontal: wp(4),
+              gap: 15,
+            }}
+          >
+            <Header
+              title={translate("likedPostsScreen:title")}
+              showBackButton
+            />
+          </View>
+        }
         ListFooterComponent={
           hasMore ? (
             <View

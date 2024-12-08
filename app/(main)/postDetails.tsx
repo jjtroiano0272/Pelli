@@ -1,23 +1,14 @@
-import { CommonActions, StackActions } from "@react-navigation/native";
 import {
   Alert,
-  Keyboard,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Link,
-  useLocalSearchParams,
-  useRouter,
-  useNavigation,
-} from "expo-router";
+import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import {
   createComment,
   fetchPostDetails,
@@ -35,12 +26,7 @@ import CommentItem from "@/components/CommentItem";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/services/userService";
 import { createNotification } from "@/services/notificationService";
-import {
-  useTheme as usetheme,
-  IconButton,
-  withTheme,
-  useTheme,
-} from "react-native-paper";
+import { useTheme } from "react-native-paper";
 import { translate } from "@/i18n";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { fetchClientDetails } from "@/services/clientService";
@@ -50,7 +36,6 @@ const PostDetails = () => {
   const { postId, commentId, clientId } = useLocalSearchParams();
   const { user } = useAuth();
   const router = useRouter();
-  const navigation = useNavigation();
   const [startLoading, setStartLoading] = useState(true);
   const inputRef = useRef(null);
   const commentRef = useRef("");
@@ -111,8 +96,8 @@ const PostDetails = () => {
     // setStartLoading(false);
   };
 
+  // NOTE, TODO: If Unexpected errors start happening, get rid of everything referencing inputValue....
   const onNewComment = async () => {
-    // NOTE, TODO: If Unexpected errors start happening, get rid of everything referencing inputValue....
     if (!commentRef.current) return null;
     if (!inputValue) return;
 
@@ -177,33 +162,11 @@ const PostDetails = () => {
 
   /** Just turns the page into newPost */
   const onEditPost = async (item: any) => {
-    // Orgiinal
-    // router.back();
-    // router.push({ pathname: "/newPost", params: { ...item } });
-
-    // const popToAction = StackActions.popTo("newPost", { ...item }, true);
-    // navigation.dispatch(popToAction);
-
-    console.log("\x1b[32m" + `shape of item: ${JSON.stringify(item, null, 2)}`);
-    // router.dispatch(CommonActions.navigateDeprecated("newPost", { ...item }));
     router.replace({
       pathname: "/newPost",
       params: { ...item, editing: 1 },
-      // params: { ...item },
-      // params: { JSON.stringify({...item, editing:true}) },
-      // params: { ...item, id: item.id, clientId: item.clientId, editing: 1 },
     });
-
-    // router.dismissAll();
-    // router.navigate({ pathname: "/newPost", params: { ...item } });
   };
-
-  useEffect(() => {
-    console.log(`IN POSTDETAILS`);
-    console.log(`postId: ${JSON.stringify(postId, null, 2)}`);
-    console.log(`commentId: ${JSON.stringify(commentId, null, 2)}`);
-    console.log(`post state var: ${JSON.stringify(post, null, 2)}`);
-  }, [, post]);
 
   if (startLoading) {
     return (
@@ -343,9 +306,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingVertical: wp(7),
-
-    // flexDirection: 'column',
-    // justifyContent: 'center',
   },
   inputContainer: {
     flexDirection: "row",

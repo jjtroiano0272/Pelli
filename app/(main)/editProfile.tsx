@@ -1,3 +1,4 @@
+import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import {
   ScrollView,
@@ -7,6 +8,7 @@ import {
   Image,
   Pressable,
   Alert,
+  Dimensions,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Link, useRouter } from "expo-router";
@@ -25,11 +27,14 @@ import {
   Button as PaperButton,
   withTheme,
   useTheme,
+  IconButton,
 } from "react-native-paper";
 import { faker, tr } from "@faker-js/faker";
 import { supabase } from "@/lib/supabase";
 import * as Haptics from "expo-haptics";
 import { translate } from "@/i18n";
+import DebugContainer from "@/utils/DebugContainer";
+import Avatar from "@/components/Avatar";
 
 type User = {
   name: string;
@@ -82,10 +87,10 @@ const editProfile = () => {
     let userData = { ...user };
     let { name, phoneNumber, address, image, bio } = userData;
 
-    if (!name || !phoneNumber || !address || !bio || !image) {
-      Alert.alert(translate("common:fieldsMissing"));
-      return;
-    }
+    // if (!name || !phoneNumber || !address || !bio || !image) {
+    //   Alert.alert(translate("common:fieldsMissing"));
+    //   return;
+    // }
 
     setLoading(true);
 
@@ -166,15 +171,30 @@ const editProfile = () => {
       ? user.image
       : getUserImageSrc(user?.image);
 
+  useEffect(() => {
+    console.log(
+      `imageSource @editProfile: ${JSON.stringify(imageSource, null, 2)}`
+    );
+  }, [imageSource]);
+
   return (
     <ScreenWrapper>
-      <View style={styles.container}>
-        <ScrollView style={{ flex: 1 }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: wp(4) }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={{
+            // flex: 1, // Take up 100% of the visible height
+            height: hp(100), // Ensures it's always screen height
+            // justifyContent: "center",
+            // alignItems: "center",
+          }}
+        >
           <Header title={translate("editProfileScreen:title")} />
-
           <View style={styles.form}>
             <View style={styles.avatarContainer}>
-              <Image
+              <ExpoImage
                 source={imageSource}
                 style={[
                   styles.avatar,
@@ -184,19 +204,45 @@ const editProfile = () => {
                   },
                 ]}
               />
+              {/* Change avatar */}
               <Pressable
                 style={[
-                  styles.cameraIcon,
+                  styles.editAvatarIcon,
                   {
                     shadowColor: theme.colors.shadow,
+                    backgroundColor: theme.colors.background,
                   },
                 ]}
                 onPress={onPickImage}
               >
                 <Icon name="userEdit" />
               </Pressable>
+              {/* Clear avatar */}
+              {/* user?.image will be a FilePicker object if it's selected from the photo roll. */}
+              {typeof user?.image == "object" && (
+                <Pressable
+                  style={[
+                    styles.clearAvatarIcon,
+                    {
+                      backgroundColor: theme.colors.background,
+                      shadowColor: theme.colors.shadow,
+                    },
+                  ]}
+                  onPress={() =>
+                    setUser({
+                      ...user,
+                      image: `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${currentUser?.id}&mouth=default,disbelief,eating,serious,smile,tongue,twinkle&backgroundType=gradientLinear,solid`,
+                    })
+                  }
+                >
+                  <Icon
+                    name="removePhoto"
+                    color={theme.colors.error}
+                    size={12}
+                  />
+                </Pressable>
+              )}
             </View>
-
             <Text
               style={{
                 fontSize: hp(1.5),
@@ -236,41 +282,68 @@ const editProfile = () => {
               containerStyle={styles.bio}
               onChangeText={(value: string) => setUser({ ...user, bio: value })}
             />
-
             <Button
               title={translate("common:update")}
               loading={loading}
               onPress={onSubmit}
             />
             {/* <Button
-              buttonStyle={
-                {
-                  // backgroundColor: '#ff0000',
+                buttonStyle={
+                  {
+                    // backgroundColor: '#ff0000',
+                  }
                 }
-              }
-              title='DELETE ACCOUNT'
-              loading={loading}
-              onPress={onSubmitDeleteAccount}
-            /> */}
+                title='DELETE ACCOUNT'
+                loading={loading}
+                onPress={onSubmitDeleteAccount}
+              /> */}
 
-            <PaperButton
-              children={translate("editProfileScreen:deleteAccountButtonTitle")}
-              uppercase
-              mode="outlined"
-              onPress={onPressDeleteAccount}
-              textColor={theme.colors.error}
-            />
+            <View
+              style={{
+                alignItems: "center",
+                marginTop: 50,
+              }}
+            >
+              <IconButton
+                icon={"arrow-down"}
+                size={26}
+                iconColor={theme.colors.backdrop}
+              />
+            </View>
           </View>
-        </ScrollView>
-      </View>
+        </View>
+
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingBottom: 20,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <PaperButton
+            children={translate("editProfileScreen:deleteAccountButtonTitle")}
+            uppercase
+            mode="text"
+            onPress={onPressDeleteAccount}
+            textColor={theme.colors.error}
+          />
+        </View>
+      </ScrollView>
     </ScreenWrapper>
   );
 };
 
-export default withTheme(editProfile);
+export default editProfile;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: wp(4) },
+  container: {
+    // flex: 1,
+    paddingHorizontal: wp(4),
+
+    height: hp(100),
+    flexGrow: 1,
+  },
   textHeader: { fontSize: 42 },
 
   form: { gap: 18, marginTop: 20 },
@@ -281,13 +354,12 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     borderWidth: 1,
   },
-  cameraIcon: {
+  editAvatarIcon: {
     position: "absolute",
     bottom: 0,
     right: -18,
     padding: 8,
     borderRadius: 50,
-    backgroundColor: "white",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
@@ -308,5 +380,16 @@ const styles = StyleSheet.create({
     height: hp(15),
     alignItems: "flex-start",
     paddingVertical: 15,
+  },
+  clearAvatarIcon: {
+    position: "absolute",
+    bottom: 0,
+    left: -18,
+    padding: 8,
+    borderRadius: 50,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    elevation: 7,
   },
 });

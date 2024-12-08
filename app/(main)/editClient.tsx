@@ -61,8 +61,6 @@ const EditClient = () => {
           showBackButton
         />
 
-        {/* <DebugContainer content={client} /> */}
-
         <View style={styles.avatarContainer}>
           <Avatar
             //   I have no freaking clue why you can do it inline here but as soon as it's a function...everything goes out the window

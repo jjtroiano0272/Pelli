@@ -445,20 +445,17 @@ export const unblockUser = async (
 
 export const fetchUsersLikedPosts = async (limit = 10, userId: string) => {
   try {
-    // const { data, error } = await supabase.rpc("fetch_users_liked_posts", {
-    //   user_id: userId,
-    // });
-
+    // A) TODO: May not be the best, but it works for now
     const { data, error } = await supabase
       .from("posts")
       .select(
-        `*, 
-        user: users (id, name, image),
-        postLikes (*),
-        comments (count)`
+        `*,
+    user: users (id, name, image),
+    postLikes: postLikes!inner(*),
+    comments (count)`
       )
       .order("created_at", { ascending: false })
-      .eq("userId", userId)
+      .eq("postLikes.userId", userId) // Filter by userId in postLikes
       .limit(limit);
 
     if (error) {

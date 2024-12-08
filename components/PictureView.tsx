@@ -93,7 +93,7 @@ const PictureView = ({ picture, setPicture }: PictureViewProps) => {
       <View
         style={{
           position: "absolute",
-          bottom: 60,
+          bottom: 100,
           zIndex: 1,
           justifyContent: "center",
           alignSelf: "center",
@@ -110,6 +110,7 @@ const PictureView = ({ picture, setPicture }: PictureViewProps) => {
           }}
         />
       </View>
+
       {/* Background image */}
       <Image
         source={image}

@@ -77,7 +77,9 @@ const Button = ({
         style={[
           styles.text,
           {
-            color: theme.colors.onPrimary,
+            color: disabled
+              ? theme.colors.surfaceDisabled
+              : theme.colors.onPrimary,
             fontWeight: "700",
           },
           textStyle,

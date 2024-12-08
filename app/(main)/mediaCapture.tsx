@@ -108,13 +108,6 @@ const MediaCapture = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(`cameraMode: ${JSON.stringify(cameraMode, null, 2)}`);
-    console.log(`isRecording: ${JSON.stringify(isRecording, null, 2)}`);
-    console.log(`picture: ${JSON.stringify(picture, null, 2)}`);
-    console.log(`video: ${JSON.stringify(video, null, 2)}`);
-  }, [picture, video, cameraMode, isRecording]);
-
   if (!permission) {
     // Camera permissions are still loading.
     return <Loading />;
@@ -263,7 +256,8 @@ export default MediaCapture;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // TODO Known bug: this doesn't really take up the correct space since the Expo SDK 52 update
+    flex: 0.94,
     // padding: 50,
     // borderRadius: 50,
     justifyContent: "center",

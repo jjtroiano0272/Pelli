@@ -1,3 +1,4 @@
+import { Client } from "@/types/globals";
 import { Dimensions } from "react-native";
 
 const { width: deviceWidth, height: deviceHeight } = Dimensions.get("window");
@@ -14,11 +15,12 @@ export const stripHtmlTags = (html: string) => {
   return html.replace(/<[^>]*>?/gm, "");
 };
 
-export const destringifyArray = (stringifiedArr: string) => {
+export const destringifyArray = (stringifiedArr: string): string[] | null => {
   if (!stringifiedArr) {
     console.log("Error in array");
     return null;
   }
+
   return stringifiedArr.replace(/[ \[\] "]/g, "").split(",");
 };
 
@@ -51,9 +53,46 @@ export const splitClientName = (str: string) => {
   return { firstName, lastName };
 };
 
-export const joinClientName = (str: string) => {
-  const first_name = clientName.split(" ")[0];
-  const last_name = clientName.split(" ")[1];
+export const joinClientName = (firstName: string, lastName: string): string => {
+  return `${firstName} ${lastName}`;
+};
 
-  return [first_name, last_name];
+/** Transform the file arrray into the right shape which has the correct fields that Slider can use. */
+export const toSliderItemList = (data: any) => {
+  if (!data || !Array.isArray(data)) return null;
+  console.log("\x1b[36m" + `data: ${JSON.stringify(data, null, 2)}`);
+
+  return data?.map((item) => ({
+    title: item.assetId,
+    image: { uri: item.uri },
+    description: item.fileName,
+  }));
+};
+
+export const getAvatarUri = (
+  file: any,
+  chosenClient: Client,
+  editing?: boolean
+) => {
+  if (file?.uri) {
+    console.log(`file?.uri: ${JSON.stringify(file?.uri, null, 2)}`);
+    return file.uri;
+  }
+
+  if (chosenClient?.profile_image) {
+    console.log(
+      `chosenClient?.profile_image: ${JSON.stringify(
+        chosenClient?.profile_image,
+        null,
+        2
+      )}`
+    );
+
+    // Check if the profile_image contains a bracketed array
+    return chosenClient.profile_image.includes("[")
+      ? chosenClient.profile_image.replace(/[ \[\]"]/g, "").split(",")[0]
+      : chosenClient.profile_image;
+  }
+
+  return null; // Fallback if nothing is found
 };

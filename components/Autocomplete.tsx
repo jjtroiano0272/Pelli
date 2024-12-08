@@ -21,7 +21,7 @@ import { Client } from "@/types/globals";
 import Input from "./Input";
 import { translate } from "@/i18n";
 import { myTheme } from "@/constants/theme";
-import { hp } from "@/helpers/common";
+import { destringifyArray, hp } from "@/helpers/common";
 import Avatar from "./Avatar";
 
 interface Props {
@@ -79,68 +79,14 @@ const Autocomplete = ({
     onClientSelected(datum); // Notify parent with selected client
   };
 
-  // useEffect(() => {
-  //   console.log(
-  //     `value in state of Autocomplete: ${JSON.stringify(value, null, 2)}`
-  //   );
-  // }, [value]);
+  useEffect(() => {
+    console.log(`inputValue: ${JSON.stringify(inputValue, null, 2)}`);
+
+    if (inputValue?.length === 0) setMenuVisible(false);
+  }, [inputValue]);
 
   return (
     <View style={[containerStyle]}>
-      {/* =====================================================================================
-        === A =============================================
-        ========================================================================================= */}
-      {/* <TextInput
-        mode="outlined"
-        onFocus={() => {
-          if (value.length === 0) {
-            console.log("zero");
-            setMenuVisible(true);
-          }
-        }}
-        // onBlur={() => setMenuVisible(false)}
-        label={label}
-        right={right}
-        left={left}
-        // style={style}
-
-        outlineStyle={{
-          height: hp(7.2),
-
-          borderColor: theme.colors.outline,
-          borderRadius: myTheme.radius.xxl,
-        }}
-        onChangeText={(text) => {
-          origOnChange(text);
-          if (text && text.length > 0) {
-            setFilteredData(filterData(text));
-          } else if (text && text.length === 0) {
-            setFilteredData(data);
-          }
-          setMenuVisible(true);
-          setValue(text);
-        }}
-        // value={value}
-        value={
-          typeof value === "string"
-            ? value
-            : `${inputValue?.first_name || ""} ${inputValue?.last_name || ""}`.trim()
-        }
-      /> */}
-
-      {/* =====================================================================================
-        === B =============================================
-        ========================================================================================= */}
-      {/* <Text
-        style={{
-          padding: 10,
-          color: theme.colors.error,
-          backgroundColor: theme.colors.errorContainer,
-          borderRadius: 20,
-        }}
-      >
-        {value && JSON.stringify(value, null, 2)}
-      </Text> */}
       <View
         style={
           {
@@ -156,10 +102,6 @@ const Autocomplete = ({
               setMenuVisible(true);
             }
           }}
-          // label={label}
-          // right={right}
-          // left={left}
-          // onChangeText={(newText: string) => setFormulaType(newText)} // each gets a separate state var
           placeholder={label}
           defaultValue={origValue}
           onChangeText={(text) => {
@@ -169,6 +111,7 @@ const Autocomplete = ({
             } else if (text && text.length === 0) {
               setFilteredData(data);
             }
+
             setMenuVisible(true);
             setInputValue(text);
           }}
@@ -182,71 +125,58 @@ const Autocomplete = ({
         />
       </View>
 
-      {menuVisible && filteredData && (
+      {menuVisible && filteredData.length > 0 && (
         <View
           style={[
             styles.menuContainer,
             {
-              //   backgroundColor: "white",
-              //   borderColor: "grey",
+              // transform: [{ translateY: -hp(3.6) }],
+              backgroundColor: theme.colors.background,
+              borderColor: theme.colors.outline,
             },
           ]}
         >
           {filteredData.map((datum: Client, i) => (
-            <>
-              {/* <Menu.Item
-                key={i}
-                //   theme={theme.dark ? MD3DarkTheme : MD3LightTheme}
+            <TouchableOpacity
+              key={i}
+              style={[
+                styles.searchResultItem,
+                {
+                  // borderBottomWidth: i === filteredData.length - 1 ? 0 : 0.4,
+                  // height: i === 0 ? 80 : 50, // First item taller
+                  backgroundColor: theme.colors.background,
+                  borderColor: theme.colors.outline,
+                  height: hp(7.2),
+                },
+              ]}
+              onPress={() => handleMenuItemPress(datum)}
+            >
+              <Text
                 style={[
-                  { width: "100%" },
-                  // bs.borderBottom,
-                  menuStyle,
+                  styles.searchResultText,
+                  {
+                    color: theme.colors.outline,
+                  },
                 ]}
-                icon="user"
-                // onPress={() => {
-                //   setValue(datum);
-                //   setMenuVisible(false);
-                //   onPressMenuItem();
+              >
+                {datum?.first_name} {datum?.last_name}
+              </Text>
 
-                //   origOnChange(datum); // Notify parent
-                // }}
-                onPress={() => handleMenuItemPress(datum)} // Handle selection
-                title={
-                  // datum
-                  `${datum?.first_name} ${datum?.last_name}`
-                }
-              /> */}
-
-              {/* My transposition */}
-              <View key={i} style={styles.searchResultItemContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.searchResultItem,
-                    {
-                      backgroundColor: theme.colors.background,
-                      borderColor: theme.colors.elevation.level5,
-                    },
-                  ]}
-                  onPress={() => handleMenuItemPress(datum)}
-                >
-                  <Text
-                    style={[
-                      styles.searchResultText,
-                      {
-                        color: theme.colors.onBackground,
-                      },
-                    ]}
-                  >
-                    {datum?.first_name} {datum?.last_name}
-                  </Text>
-
-                  {/* A */}
-                  {/* <View style={{ padding: 10 }}>
-                    <Avatar uri={item?.profile_image} />
-                  </View> */}
-                </TouchableOpacity>
+              {/* A */}
+              <View style={{ padding: 10 }}>
+                <Avatar
+                  // check if it contains [] or , to quick-check for arrayness
+                  // TODO Can definitely be more elegant
+                  uri={
+                    datum.profile_image?.includes("[")
+                      ? datum?.profile_image
+                          ?.replace(/[ \[\] "]/g, "")
+                          .split(",")[0]
+                      : datum.profile_image
+                  }
+                />
               </View>
-            </>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -267,21 +197,38 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     flex: 1,
-    borderWidth: 0.4,
+    position: "absolute", // Make menu flow below Input
+    // borderWidth: 0.4,
     flexDirection: "column",
+    borderTopColor: "transparent",
+    borderWidth: 0.4,
+    borderTopWidth: 0, // Seamlessly connect to Input
+    borderRadius: 5,
+    top: hp(7.2), // Match Input height
+    left: 0,
+    right: 0,
+    zIndex: 10, // Ensure it's above other elements
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   searchResultItemContainer: {
     //   width: "100%",
     //   backgroundColor: "blue",
     //   height: 100,
     // position: "absolute",
-    zIndex: 10, // TODO can be 1?
+    zIndex: -1, // TODO can be 1?
     alignItems: "center",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    // borderTopLeftRadius: 20,
+    // borderTopRightRadius: 20,
   },
   searchResultItem: {
-    borderWidth: 1,
+    borderWidth: 0.4,
     width: "100%",
     borderRadius: 5,
     flexDirection: "row",

@@ -24,7 +24,7 @@ const RegularContent = () => {
     >
       {/* <Text style={regularContentStyles.text}>Regular content ✨</Text> */}
       <Image
-        source={require("@/assets/images/icon.png")}
+        source={require("@/assets/images/strands-logo-2-circle-transparent.png")}
         style={{
           width: 50,
           height: 50,

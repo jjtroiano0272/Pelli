@@ -21,8 +21,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { myTheme } from "@/constants/theme";
 import {
   formatToPhone,
+  getAvatarUri,
   hp,
   splitClientName,
+  toSliderItemList,
   unformatPhone,
   wp,
 } from "@/helpers/common";
@@ -34,7 +36,11 @@ import { useAuth } from "@/context/AuthContext";
 import Icon from "@/assets/icons";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
-import { getSupabaseFileUrl } from "@/services/imageService";
+import {
+  getSupabaseFileUrl,
+  getUserImageSrc,
+  uploadFile,
+} from "@/services/imageService";
 import { Video } from "expo-av";
 import {
   createOrUpdatePost,
@@ -55,46 +61,30 @@ import { Client } from "@/types/globals";
 import Autocomplete from "@/components/Autocomplete";
 import { supabase } from "@/lib/supabase";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import DebugContainer from "@/utils/DebugContainer";
 
 const NewPost = ({ route }: { route: any }) => {
   const theme = useTheme();
-  // original:
+  const router = useRouter();
+  const { user } = useAuth();
+
   const post = useLocalSearchParams();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-  console.log("\x1b[37m" + `post params: ${JSON.stringify(post, null, 2)}`);
-
-  // const { post, editing }: { [key: string]: any } = useLocalSearchParams();
-  // const {
-  //   id,
-  //   clientId,
-  //   editing,
-  // }: { [key: string]: any; clientId: number; editing: number } =
-  //   useLocalSearchParams();
-  const { user } = useAuth();
   const bodyRef = useRef("");
   const editorRef = useRef(null);
-
   const clientNameRef = useRef("");
 
-  const formulaDescriptionRef = useRef("");
-  const formulaTypeRef = useRef("");
   const [formulaType, setFormulaType] = useState("");
   const [formulaDescription, setFormulaDescription] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>();
-  const [isNewClient, setIsNewClient] = useState(false);
   const [autocompleteValue, setAutocompleteValue] = useState<Client | {}>({});
-
-  const [existingClient, setExistingClient] = useState();
   const [clients, setClients] = useState([{}]);
-
-  const [showPhoneInput, setShowPhoneInput] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [clientName, setClientName] = useState("");
-
+  const [chosenClient, setChosenClient] = useState<Client>();
   const [fromNewPost, setFromNewPost] = useState(false);
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<
     // | ImagePicker.ImagePickerAsset
@@ -203,6 +193,7 @@ const NewPost = ({ route }: { route: any }) => {
       setFile(post.file || null);
 
       setTimeout(() => {
+        // TODO Some way to have this thing just wait until it's actually available
         editorRef?.current?.setContentHTML(post.body);
       }, 500);
     } else {
@@ -212,9 +203,8 @@ const NewPost = ({ route }: { route: any }) => {
     }
   }, []);
 
+  // TODO Not entirely sure what it does
   useEffect(() => {
-    console.log(`post: ${JSON.stringify(post, null, 2)}`);
-
     if (post?.cameraCaptureUri) {
       console.log(`params passed in: ${JSON.stringify(post, null, 2)}`);
 
@@ -244,23 +234,6 @@ const NewPost = ({ route }: { route: any }) => {
 
   // TODO Create type
   // Comes from ImagePicker
-  // When selecting video from photo roll, it returns ImagePickerAsset
-  /* Type mockup...only thing in 'common' is 'fileSize (ImagePicker) => size (expo-file))
-  
-    {    
-        "fileSize": 5945935, (size)
-        "type": "video",
-        "mimeType": "video/quicktime",
-        "uri": "file:///var/mobile/Containers/Data/Application/47897D7E-1A53-49DB-B...4.mov",
-        "height": 1920,
-        "assetId": null,
-        "base64": null,
-        "width": 1080,
-        "duration": 3865,
-        "fileName": null,
-        "exif": null
-    }
-  */
   const getFileDetails = async (fileUri: string) => {
     try {
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
@@ -323,8 +296,31 @@ const NewPost = ({ route }: { route: any }) => {
     });
 
     if (!result.canceled && result?.assets?.[0]) {
-      // setUser({ ...user, image: result.assets[0] });
+      console.log(
+        `result.assets[0]: ${JSON.stringify(result.assets[0], null, 2)}`
+      );
       setFile(result.assets[0]);
+    }
+  };
+
+  const onEditClientImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result?.assets?.[0]) {
+      // setFile(result.assets[0]);
+
+      console.log(
+        `result?.assets?.[0]: ${JSON.stringify(result?.assets?.[0], null, 2)}`
+      );
+      setChosenClient({
+        ...chosenClient,
+        profile_image: result?.assets?.[0]?.uri, // copy it over from edit profile
+      });
     }
   };
 
@@ -339,10 +335,6 @@ const NewPost = ({ route }: { route: any }) => {
     }
     console.log(`body: ${JSON.stringify(bodyRef.current, null, 2)}`);
     console.log(`file: ${JSON.stringify(file, null, 2)}`);
-
-    // Create client if they don't yet exist in the db
-    let clientRes;
-    let newClientId;
 
     //  🚨🚨🚨 Here it is officer! THIS one right here is what was causing the creation of a new client every time.
     // if (isNewClient) {
@@ -447,7 +439,7 @@ const NewPost = ({ route }: { route: any }) => {
     return false;
   };
 
-  const getFileType = (file: any) => {
+  const getFileType = (file: any): "image" | "video" | string | null => {
     if (!file) return null;
 
     if (isLocalFile(file)) {
@@ -471,17 +463,13 @@ const NewPost = ({ route }: { route: any }) => {
     return getSupabaseFileUrl(file)?.uri;
   };
 
-  /** Transform the file arrray into the right shape which has the correct fields that Slider can use. */
-  const transformData = (data) => {
-    if (!data || !Array.isArray(data)) return null;
-    console.log("\x1b[36m" + `data: ${JSON.stringify(data, null, 2)}`);
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
 
-    return data?.map((item) => ({
-      title: item.assetId,
-      image: { uri: item.uri },
-      description: item.fileName,
-    }));
-  };
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+  }, []);
 
   // The uri looks like "file:///var/mobile/Containers/Data/Application/47897D7E-1A53-49DB-B17D...BB8B-317765E87EAC.png"
   const handleRemoveImage = (uri: string) => {
@@ -490,14 +478,6 @@ const NewPost = ({ route }: { route: any }) => {
     );
     console.log(`image: ${JSON.stringify(uri, null, 2)}`);
   };
-
-  // callbacks
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
 
   const handleCreateOrUpdateClient = async () => {
     /**
@@ -509,7 +489,6 @@ const NewPost = ({ route }: { route: any }) => {
         last_name: splitClientName(clientName).lastName,
         phone_number: unformatPhone(phoneNumber) || null,
       };
-      setChosenClient(newClient);
 
       console.log(
         "\x1b[35m" + `adding client: ${JSON.stringify(newClient, null, 2)}`
@@ -520,6 +499,10 @@ const NewPost = ({ route }: { route: any }) => {
       setLoading(false);
 
       if (res.success) {
+        console.log(
+          `res.data expecting an id: ${JSON.stringify(res.data, null, 2)}`
+        );
+        setChosenClient(res.data);
         bottomSheetModalRef.current?.close();
       } else {
         Alert.alert("Error updating client", res.msg);
@@ -530,19 +513,31 @@ const NewPost = ({ route }: { route: any }) => {
        */
       console.log(`chosenClient: ${JSON.stringify(chosenClient, null, 2)}`);
 
-      let newClient = {
+      let imageUploadRes = await uploadFile(
+        "profiles",
+        chosenClient?.profile_image,
+        true
+      );
+      let imagePath;
+
+      if (imageUploadRes.success) {
+        imagePath = imageUploadRes.data;
+      }
+
+      let updatedClient = {
         ...chosenClient,
-        first_name: clientName.split(" ")[0],
-        last_name: clientName.split(" ")[1],
-        phone_number: unformatPhone(phoneNumber), // destringify
+        first_name: splitClientName(clientName).firstName,
+        last_name: splitClientName(clientName).lastName,
+        phone_number: unformatPhone(phoneNumber) || null, // destringify
+        profile_image: imagePath || file || chosenClient?.profile_image || null,
       };
 
       console.log(
-        "\x1b[35m" + `newClient: ${JSON.stringify(newClient, null, 2)}`
+        "\x1b[35m" + `updatedClient: ${JSON.stringify(updatedClient, null, 2)}`
       );
 
       setLoading(true);
-      let res = await createOrUpdateClient(newClient);
+      let res = await createOrUpdateClient(updatedClient);
       setLoading(false);
 
       if (res.success) {
@@ -553,19 +548,16 @@ const NewPost = ({ route }: { route: any }) => {
     }
   };
 
-  const onChangeInput: TextInputProps["onChange"] = (event) => {
-    ref.current.inputValue = event.nativeEvent.text;
-
-    setInputValue(event.nativeEvent.text);
+  const handleClientEvent = async (
+    payload: RealtimePostgresChangesPayload<any>
+  ) => {
+    if (payload.eventType == "INSERT" || payload.eventType == "UPDATE") {
+      console.log(
+        "\x1b[34m" + `Client event payload: ${JSON.stringify(payload, null, 2)}`
+      );
+      // setPosts(filteredPosts);
+    }
   };
-
-  const [chosenClient, setChosenClient] = useState<Client>();
-  useEffect(() => {
-    console.log(`chosenClient: ${JSON.stringify(chosenClient, null, 2)}`);
-    console.log(
-      `autocompleteValue: ${JSON.stringify(autocompleteValue, null, 2)}`
-    );
-  }, [chosenClient, autocompleteValue]);
 
   // Listen for a client being selected
   useEffect(() => {
@@ -575,6 +567,26 @@ const NewPost = ({ route }: { route: any }) => {
     setClientName(`${chosenClient?.first_name} ${chosenClient?.last_name}`);
   }, [chosenClient]);
 
+  // Listen for changes to client in db
+  useEffect(() => {
+    let clientChannel = supabase
+      .channel("clients")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "clients",
+        },
+        handleClientEvent
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(clientChannel);
+    };
+  }, []);
+
   return (
     <ScreenWrapper>
       <GestureHandlerRootView
@@ -582,7 +594,10 @@ const NewPost = ({ route }: { route: any }) => {
           flex: 1,
         }}
       >
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <TouchableWithoutFeedback
+          onPress={() => Keyboard.dismiss()}
+          style={{ backgroundColor: "red" }}
+        >
           <BottomSheetModalProvider>
             <View style={styles.container}>
               <Header
@@ -627,15 +642,18 @@ const NewPost = ({ route }: { route: any }) => {
                     </Text>
                   </View>
                 </View>
-                {/* Client input */}
+
+                {/* =====================================================================================
+                === Client Input ========================================================================
+                ========================================================================================= */}
                 {
                   // selectedClient &&
                   // selectedClient.first_name &&
                   // selectedClient.last_name
+                  // CLIENT EXISTS--AUTOFILLED CLIENT
                   chosenClient ? (
-                    // "Secondary Container"
+                    // just merge parent containers?
                     <View style={styles.chosenClientContainer}>
-                      {/* Secondary Container */}
                       <View
                         style={[
                           styles.clientName,
@@ -649,7 +667,15 @@ const NewPost = ({ route }: { route: any }) => {
                         <View style={styles.clientItem}>
                           {chosenClient.profile_image && (
                             <Avatar
-                              uri={chosenClient.profile_image}
+                              uri={
+                                // chosenClient.profile_image
+
+                                chosenClient?.profile_image?.includes("[")
+                                  ? chosenClient?.profile_image
+                                      ?.replace(/[ \[\] "]/g, "")
+                                      .split(",")[0]
+                                  : chosenClient.profile_image
+                              }
                               size={hp(6)}
                             />
                           )}
@@ -670,52 +696,58 @@ const NewPost = ({ route }: { route: any }) => {
                                   color: theme.colors.secondary,
                                   fontWeight: "300",
                                 }}
-                              >{`${chosenClient.phone_number}`}</Text>
+                              >
+                                {chosenClient?.phone_number &&
+                                  `${formatToPhone(
+                                    chosenClient?.phone_number
+                                  )}`}
+                              </Text>
                             </View>
                           </View>
                         </View>
                         <IconButton
                           icon={"close-circle"}
-                          style={{ right: -10, overflow: "hidden" }}
+                          // style={{ right: -10, overflow: "hidden" }}
                           onPress={() => setChosenClient(undefined)}
                         />
                       </View>
                       {/* Button (takes 10%) */}
-                      <IconButton
-                        icon={"account-edit-outline"}
-                        onPress={handlePresentModalPress}
-                      />
+                      <View style={{ flex: 1 }}>
+                        <IconButton
+                          icon={"account-edit-outline"}
+                          onPress={handlePresentModalPress}
+                        />
+                      </View>
                     </View>
                   ) : (
-                    <>
-                      <View style={styles.autocompleteContainer}>
-                        <View style={{ flex: 8 }}>
-                          <Autocomplete
-                            label="Client name"
-                            data={clients}
-                            value={
-                              chosenClient
-                                ? `${chosenClient?.first_name} ${chosenClient?.last_name}`
-                                : ""
-                            }
-                            containerStyle={{}}
-                            onChange={(newValue) =>
-                              console.log("Input changed:", newValue)
-                            }
-                            onClientSelected={(client) => {
-                              console.log("Selected client:", client);
-                              setChosenClient(client); // Set the chosen client in state
-                            }}
-                          />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <IconButton
-                            icon={"account-plus-outline"}
-                            onPress={handlePresentModalPress}
-                          />
-                        </View>
+                    // NEW CLIENT INPUT
+                    <View style={styles.autocompleteContainer}>
+                      <View style={{ flex: 8 }}>
+                        <Autocomplete
+                          label="Client name"
+                          data={clients}
+                          value={
+                            chosenClient
+                              ? `${chosenClient?.first_name} ${chosenClient?.last_name}`
+                              : ""
+                          }
+                          containerStyle={{}}
+                          onChange={(newValue) =>
+                            console.log("Input changed:", newValue)
+                          }
+                          onClientSelected={(client) => {
+                            console.log("Selected client:", client);
+                            setChosenClient(client); // Set the chosen client in state
+                          }}
+                        />
                       </View>
-                    </>
+                      <View style={{ flex: 1 }}>
+                        <IconButton
+                          icon={"account-plus-outline"}
+                          onPress={handlePresentModalPress}
+                        />
+                      </View>
+                    </View>
                   )
                 }
                 {/* Formula type */}
@@ -769,7 +801,7 @@ const NewPost = ({ route }: { route: any }) => {
                       />
                     )}
                     <Pressable
-                      style={styles.closelcon}
+                      style={styles.closeIcon}
                       onPress={() => setFile(null)}
                     >
                       <Icon name="delete" size={20} color="white" />
@@ -781,9 +813,9 @@ const NewPost = ({ route }: { route: any }) => {
               | =>        			Multiple media shown
               |----------------------------------------------------------------------------------------------------
             */}
-                {file && file?.length > 1 && transformData(file) && (
+                {file && file?.length > 1 && toSliderItemList(file) && (
                   <Slider
-                    itemList={transformData(file)}
+                    itemList={toSliderItemList(file)}
                     onPress={handleRemoveImage}
                   />
                 )}
@@ -859,7 +891,10 @@ const NewPost = ({ route }: { route: any }) => {
             <BottomSheetModal
               ref={bottomSheetModalRef}
               onChange={handleSheetChanges}
-              style={styles.bottomSheetModal}
+              style={[
+                styles.bottomSheetModal,
+                { shadowColor: theme.colors.shadow },
+              ]}
               handleStyle={{
                 backgroundColor: theme.colors.background,
               }}
@@ -867,66 +902,88 @@ const NewPost = ({ route }: { route: any }) => {
                 backgroundColor: theme.colors.onBackground,
               }}
             >
-              <BottomSheetView
-                style={[
-                  styles.bottomSheetContainer,
-                  {
-                    backgroundColor: theme.colors.background,
-                  },
-                ]}
+              <Pressable
+              // onPress={() => Keyboard.dismiss()}
               >
-                <Header title={!chosenClient ? "Add client" : "Edit client"} />
-                {/* <DebugContainer content={client} /> */}
-                <View style={styles.avatarContainer}>
-                  <Avatar
-                    uri={file?.uri ?? chosenClient?.profile_image}
-                    size={hp(12)}
-                    rounded={myTheme.radius.xxl * 1.4}
-                    debug={!chosenClient ? true : false}
+                <BottomSheetView
+                  style={[
+                    styles.bottomSheetContainer,
+                    {
+                      backgroundColor: theme.colors.background,
+                    },
+                  ]}
+                >
+                  <Header
+                    title={!chosenClient ? "Add client" : "Edit client"}
                   />
-                  <Pressable
-                    style={[
-                      styles.cameraIcon,
-                      {
-                        shadowColor: theme.colors.shadow,
-                      },
-                    ]}
-                    onPress={onPickClientImage}
-                  >
-                    <Icon name="photoAlbum" />
-                  </Pressable>
-                </View>
-                {/* comment */}
-                <Input
-                  autoFocus
-                  icon={<Icon name="user" size={26} strokeWidth={1.6} />}
-                  autoCapitalize="words"
-                  placeholder={"Client name"}
-                  onChangeText={(newText: string) => setClientName(newText)}
-                  value={clientName}
-                  // defaultValue={formulaType}
-                />
-                <Input
-                  icon={<Icon name="phone" size={26} strokeWidth={1.6} />}
-                  // onChangeText={(newText: string) => setFormulaType(newText)} // each gets a separate state var
-                  // defaultValue={formulaType}
-                  value={phoneNumber}
-                  onChangeText={(arg: string) => {
-                    console.log(arg);
-                    // setNewClient({ ...newClient, phoneNumber: arg });
-                    let res = formatToPhone(arg);
-                    console.log(res);
-                    setPhoneNumber(res);
-                  }}
-                  placeholder="Phone number"
-                  keyboardType="phone-pad"
-                />
-                <Button
-                  title={!chosenClient ? "Add" : "Update"}
-                  onPress={handleCreateOrUpdateClient}
-                  loading={loading}
-                />
-              </BottomSheetView>
+
+                  <View style={styles.avatarContainer}>
+                    {/* // TODO This one also can DEFINITELY be more elegant */}
+                    {chosenClient?.profile_image?.startsWith("file:///") ? (
+                      <Image
+                        source={{ uri: chosenClient.profile_image }}
+                        style={[
+                          styles.avatar,
+                          {
+                            borderColor: theme.colors.outline,
+                          },
+                        ]}
+                      />
+                    ) : (
+                      <Avatar
+                        uri={getAvatarUri(file, chosenClient)}
+                        size={hp(12)}
+                        rounded={myTheme.radius.xxl * 1.4}
+                        debug={!chosenClient ? true : false}
+                      />
+                    )}
+
+                    <Pressable
+                      style={[
+                        styles.cameraIcon,
+                        {
+                          shadowColor: theme.colors.shadow,
+                        },
+                      ]}
+                      onPress={onEditClientImage}
+                    >
+                      <Icon name="photoAlbum" />
+                    </Pressable>
+                  </View>
+                  {/* comment */}
+                  <Input
+                    autoFocus
+                    icon={<Icon name="user" size={26} strokeWidth={1.6} />}
+                    autoCapitalize="words"
+                    placeholder={"Client name"}
+                    onChangeText={(newText: string) => setClientName(newText)}
+                    value={clientName}
+                    // defaultValue={formulaType}
+                  />
+                  <Input
+                    icon={<Icon name="phone" size={26} strokeWidth={1.6} />}
+                    // onChangeText={(newText: string) => setFormulaType(newText)} // each gets a separate state var
+                    // defaultValue={formulaType}
+                    value={phoneNumber}
+                    onChangeText={(arg: string) => {
+                      console.log(arg);
+                      // setNewClient({ ...newClient, phoneNumber: arg });
+                      let res = formatToPhone(arg);
+                      console.log(res);
+                      setPhoneNumber(res);
+                    }}
+                    placeholder="Phone number"
+                    keyboardType="phone-pad"
+                  />
+
+                  <Button
+                    title={!chosenClient ? "Add" : "Update"}
+                    onPress={handleCreateOrUpdateClient}
+                    loading={loading}
+                    disabled={!clientName && !phoneNumber}
+                  />
+                </BottomSheetView>
+              </Pressable>
             </BottomSheetModal>
           </BottomSheetModalProvider>
         </TouchableWithoutFeedback>
@@ -946,8 +1003,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     gap: 15,
   },
-  textHeader: { fontSize: 42 },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -960,9 +1015,6 @@ const styles = StyleSheet.create({
   publicText: {
     fontSize: hp(1.7),
     fontWeight: "500",
-  },
-  textEditor: {
-    // marginTop: 10
   },
   media: {
     borderRadius: myTheme.radius.xl,
@@ -990,8 +1042,7 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     borderRadius: myTheme.radius.xl,
   },
-  video: {},
-  closelcon: {
+  closeIcon: {
     position: "absolute",
     top: 10,
     right: 10,
@@ -1003,25 +1054,10 @@ const styles = StyleSheet.create({
     // shadow0pacity: 0.6,
     // shadowRadius:
   },
-  input: {
-    //styles for autocomplet
-  },
   avatarContainer: {
     height: hp(12),
     width: hp(12),
     alignSelf: "center",
-  },
-  editIcon: {
-    position: "absolute",
-    bottom: 0,
-    right: -12,
-    padding: 7,
-    borderRadius: 50,
-    backgroundColor: "white",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
-    elevation: 5,
   },
   clientName: {
     borderRadius: myTheme.radius.xxl,
@@ -1049,7 +1085,6 @@ const styles = StyleSheet.create({
     minHeight: hp(85),
   },
   bottomSheetModal: {
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 7,
@@ -1071,10 +1106,21 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 7,
   },
-  autocompleteContainer: { flexDirection: "row", width: "100%" },
+  autocompleteContainer: {
+    flexDirection: "row",
+    width: "100%",
+    alignItems: "center",
+  },
   chosenClientContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
+  },
+  avatar: {
+    borderCurve: "continuous",
+    borderWidth: 1,
+    height: hp(12),
+    width: hp(12),
+    borderRadius: 14,
   },
 });
